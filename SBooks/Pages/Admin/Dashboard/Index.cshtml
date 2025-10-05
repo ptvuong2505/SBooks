@@ -1,0 +1,470 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "_AdminLayout";
+}
+
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-end align-items-center mb-4">
+            @* <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+            </h1> *@
+            <div class="text-muted">
+                <i class="fas fa-clock me-1"></i>
+                Last updated: @DateTime.Now.ToString("HH:mm dd/MM/yyyy")
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Thống kê tổng quan -->
+<div class="row mb-4">
+    <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Tổng Sách</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalBooks</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-book fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Tác Giả</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalAuthors</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-pen-fancy fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Người Dùng</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalUsers</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">NXB</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalPublishers</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-building fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Đánh Giá</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalReviews</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-star fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+        <div class="card border-left-secondary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">Yêu Thích</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalFavorites</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-heart fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hàng thứ 2: Biểu đồ và thống kê -->
+<div class="row mb-4">
+    <!-- Thống kê theo thể loại -->
+    <div class="col-xl-4 col-lg-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-tags me-2"></i>Thể Loại Phổ Biến
+                </h6>
+            </div>
+            <div class="card-body">
+                @if (Model.GenreStatistics.Any())
+                {
+                    @foreach (var genre in Model.GenreStatistics)
+                    {
+                        <div class="mb-3">
+                            <div class="small mb-1">
+                                <strong>@genre.Genre</strong>
+                                <span class="float-end">@genre.BookCount sách</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-primary" role="progressbar"
+                                    style="width: @((double)genre.BookCount / Model.GenreStatistics.Max(g => g.BookCount) * 100)%"
+                                    aria-valuenow="@genre.BookCount" aria-valuemin="0"
+                                    aria-valuemax="@Model.GenreStatistics.Max(g => g.BookCount)">
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted text-center mb-0">Chưa có dữ liệu thể loại</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Top sách được xem nhiều -->
+    <div class="col-xl-4 col-lg-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-eye me-2"></i>Sách Được Xem Nhiều
+                </h6>
+            </div>
+            <div class="card-body">
+                @if (Model.TopViewedBooks.Any())
+                {
+                    @foreach (var book in Model.TopViewedBooks)
+                    {
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="flex-shrink-0">
+                                @if (!string.IsNullOrEmpty(book.UrlImage))
+                                {
+                                    <img src="@book.UrlImage" alt="@book.Title" class="rounded"
+                                        style="width: 40px; height: 50px; object-fit: cover;">
+                                }
+                                else
+                                {
+                                    <div class="bg-secondary rounded d-flex align-items-center justify-content-center"
+                                        style="width: 40px; height: 50px;">
+                                        <i class="fas fa-book text-white"></i>
+                                    </div>
+                                }
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-1 text-truncate">@book.Title</h6>
+                                <small class="text-muted">@book.Author?.AuthorName</small>
+                                <div class="text-primary small">
+                                    <i class="fas fa-eye me-1"></i>@(book.ViewCount ?? 0) lượt xem
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted text-center mb-0">Chưa có dữ liệu lượt xem</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Top từ khóa tìm kiếm -->
+    <div class="col-xl-4 col-lg-12 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-search me-2"></i>Từ Khóa Phổ Biến
+                </h6>
+            </div>
+            <div class="card-body">
+                @if (Model.TopSearchTerms.Any())
+                {
+                    @foreach (var term in Model.TopSearchTerms)
+                    {
+                        <span class="badge bg-secondary me-2 mb-2 fs-6">@term</span>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted text-center mb-0">Chưa có dữ liệu tìm kiếm</p>
+                }
+
+                <hr class="my-3">
+
+                <h6 class="font-weight-bold">Top Tác Giả</h6>
+                @if (Model.TopAuthors.Any())
+                {
+                    @foreach (var author in Model.TopAuthors)
+                    {
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-truncate">@author.AuthorName</span>
+                            <small class="text-muted">@author.Books.Count sách</small>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted text-center mb-0">Chưa có dữ liệu tác giả</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hàng thứ 3: Hoạt động gần đây -->
+<div class="row">
+    <!-- Người dùng mới -->
+    <div class="col-xl-4 col-lg-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-user-plus me-2"></i>Người Dùng Mới
+                </h6>
+            </div>
+            <div class="card-body">
+                @if (Model.RecentUsers.Any())
+                {
+                    @foreach (var user in Model.RecentUsers)
+                    {
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="flex-shrink-0">
+                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center"
+                                    style="width: 35px; height: 35px;">
+                                    <i class="fas fa-user text-white small"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-1">@user.FullName</h6>
+                                <small class="text-muted">@user.Username</small>
+                                <div class="text-muted small">
+                                    @if (user.CreatedAt.HasValue)
+                                    {
+                                        @user.CreatedAt.Value.ToString("dd/MM/yyyy")
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted text-center mb-0">Chưa có người dùng mới</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Sách mới -->
+    <div class="col-xl-4 col-lg-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-book-open me-2"></i>Sách Mới Thêm
+                </h6>
+            </div>
+            <div class="card-body">
+                @if (Model.RecentBooks.Any())
+                {
+                    @foreach (var book in Model.RecentBooks)
+                    {
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="flex-shrink-0">
+                                @if (!string.IsNullOrEmpty(book.UrlImage))
+                                {
+                                    <img src="@book.UrlImage" alt="@book.Title" class="rounded"
+                                        style="width: 35px; height: 45px; object-fit: cover;">
+                                }
+                                else
+                                {
+                                    <div class="bg-success rounded d-flex align-items-center justify-content-center"
+                                        style="width: 35px; height: 45px;">
+                                        <i class="fas fa-book text-white small"></i>
+                                    </div>
+                                }
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-1 text-truncate">@book.Title</h6>
+                                <small class="text-muted">@book.Author?.AuthorName</small>
+                                <div class="text-muted small">
+                                    @if (book.CreatedAt.HasValue)
+                                    {
+                                        @book.CreatedAt.Value.ToString("dd/MM/yyyy")
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted text-center mb-0">Chưa có sách mới</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Đánh giá mới -->
+    <div class="col-xl-4 col-lg-12 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-comments me-2"></i>Đánh Giá Mới
+                </h6>
+            </div>
+            <div class="card-body">
+                @if (Model.RecentReviews.Any())
+                {
+                    @foreach (var review in Model.RecentReviews)
+                    {
+                        <div class="mb-3 p-2 border-start border-primary border-3">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <h6 class="mb-0 text-truncate">@review.User?.FullName</h6>
+                                <div class="text-primary small">
+                                    <i class="fas fa-thumbs-up me-1"></i>@(review.LikeCount ?? 0)
+                                    <i class="fas fa-thumbs-down ms-2 me-1"></i>@(review.DislikeCount ?? 0)
+                                </div>
+                            </div>
+                            <small class="text-muted">@review.Book?.Title</small>
+                            @if (!string.IsNullOrEmpty(review.CommentText))
+                            {
+                                <p class="small mb-1 text-truncate">@review.CommentText</p>
+                            }
+                            <small class="text-muted">
+                                @if (review.CreatedAt.HasValue)
+                                {
+                                    @review.CreatedAt.Value.ToString("dd/MM/yyyy")
+                                }
+                            </small>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted text-center mb-0">Chưa có đánh giá mới</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-bolt me-2"></i>Thao Tác Nhanh
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <a href="/Admin/Books/Create" class="btn btn-primary btn-block w-100">
+                            <i class="fas fa-plus me-2"></i>Thêm Sách Mới
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <a href="/Admin/Authors/Create" class="btn btn-success btn-block w-100">
+                            <i class="fas fa-user-edit me-2"></i>Thêm Tác Giả
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <a href="/Admin/Users" class="btn btn-info btn-block w-100">
+                            <i class="fas fa-users-cog me-2"></i>Quản Lý User
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <a href="/Admin/Books" class="btn btn-warning btn-block w-100">
+                            <i class="fas fa-list me-2"></i>Danh Sách Sách
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .border-left-primary {
+        border-left: 0.25rem solid #4e73df !important;
+    }
+
+    .border-left-success {
+        border-left: 0.25rem solid #1cc88a !important;
+    }
+
+    .border-left-info {
+        border-left: 0.25rem solid #36b9cc !important;
+    }
+
+    .border-left-warning {
+        border-left: 0.25rem solid #f6c23e !important;
+    }
+
+    .border-left-danger {
+        border-left: 0.25rem solid #e74a3b !important;
+    }
+
+    .border-left-secondary {
+        border-left: 0.25rem solid #858796 !important;
+    }
+
+    .text-gray-800 {
+        color: #5a5c69 !important;
+    }
+
+    .text-gray-300 {
+        color: #dddfeb !important;
+    }
+
+    .card {
+        transition: all 0.3s;
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .progress {
+        height: 0.5rem;
+    }
+
+    .badge {
+        font-size: 0.8em;
+    }
+</style>

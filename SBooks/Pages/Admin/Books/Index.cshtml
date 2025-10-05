@@ -1,0 +1,549 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Quản lý Sách";
+    Layout = "_AdminLayout";
+}
+
+<!-- Search Section -->
+<div class="admin-card mb-4">
+    <div class="card-header bg-light">
+        
+    </div>
+    <div class="card-body p-3">
+        <form method="get" id="searchForm">
+            <!-- Basic Search Row -->
+            <div class="row g-3 mb-3 align-items-center">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Tìm theo tiêu đề</label>
+                    <input type="text" class="form-control" asp-for="SearchTitle" placeholder="Nhập tiêu đề sách...">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Tác giả</label>
+                    <select class="form-select" asp-for="AuthorId" asp-items="Model.Authors"></select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Nhà xuất bản</label>
+                    <select class="form-select" asp-for="PublisherId" asp-items="Model.Publishers"></select>
+                </div>
+            </div>
+
+            <!-- Advanced Search (Collapsible) -->
+            <div class="collapse @((!string.IsNullOrEmpty(Model.SearchDescription) || Model.SelectedGenres.Any() || Model.MinYear.HasValue || Model.MaxYear.HasValue || Model.MinPrice.HasValue || Model.MaxPrice.HasValue || Model.CreatedFromDate.HasValue || Model.CreatedToDate.HasValue) ? "show" : "")" id="advancedSearch">
+                <hr class="my-3">
+                <div class="row g-3 align-items-center">
+                    <!-- Description Search -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Tìm trong mô tả</label>
+                        <input type="text" class="form-control" asp-for="SearchDescription" placeholder="Nhập từ khóa trong mô tả...">
+                    </div>
+                    <!-- Genre Multi-Select -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Thể loại (có thể chọn nhiều)</label>
+                        <div class="border rounded p-2" style="max-height: 120px; overflow-y: auto; background-color: #f8f9fa;">
+                            @if (Model.AvailableGenres.Any())
+                            {
+                                @foreach (var genre in Model.AvailableGenres)
+                                {
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="SelectedGenres" value="@genre" id="genre_@genre.Replace(" ", "_")" 
+                                               @(Model.SelectedGenres.Contains(genre) ? "checked" : "")>
+                                        <label class="form-check-label" for="genre_@genre.Replace(" ", "_")">
+                                            @genre
+                                        </label>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <small class="text-muted">Chưa có thể loại nào</small>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Year Range -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Năm xuất bản từ</label>
+                        <input type="number" class="form-control" asp-for="MinYear" min="1900" max="@DateTime.Now.AddYears(1).Year" placeholder="VD: 2020">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Năm xuất bản đến</label>
+                        <input type="number" class="form-control" asp-for="MaxYear" min="1900" max="@DateTime.Now.AddYears(1).Year" placeholder="VD: 2024">
+                    </div>
+
+                    <!-- Price Range -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Giá từ (VND)</label>
+                        <input type="number" class="form-control" asp-for="MinPrice" min="0" step="1000" placeholder="VD: 50000">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Giá đến (VND)</label>
+                        <input type="number" class="form-control" asp-for="MaxPrice" min="0" step="1000" placeholder="VD: 500000">
+                    </div>
+
+                    <!-- Date Range with Tempus Dominus Datepicker -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Ngày tạo từ</label>
+                        <div class="input-group" id="dateFromPicker" data-td-target-input="nearest" data-td-target-toggle="nearest">
+                            <input type="text" class="form-control" asp-for="CreatedFromDate" 
+                                   data-td-target="#dateFromPicker" placeholder="Chọn ngày bắt đầu..."/>
+                            <span class="input-group-text" data-td-target="#dateFromPicker" data-td-toggle="datetimepicker">
+                                <i class="fas fa-calendar"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Ngày tạo đến</label>
+                        <div class="input-group" id="dateToPicker" data-td-target-input="nearest" data-td-target-toggle="nearest">
+                            <input type="text" class="form-control" asp-for="CreatedToDate" 
+                                   data-td-target="#dateToPicker" placeholder="Chọn ngày kết thúc..."/>
+                            <span class="input-group-text" data-td-target="#dateToPicker" data-td-toggle="datetimepicker">
+                                <i class="fas fa-calendar"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Sort Options -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Sắp xếp theo</label>
+                        <select class="form-select" asp-for="SortBy">
+                            <option value="CreatedAt">Ngày tạo</option>
+                            <option value="Title">Tiêu đề</option>
+                            <option value="Author">Tác giả</option>
+                            <option value="Publisher">Nhà xuất bản</option>
+                            <option value="Genre">Thể loại</option>
+                            <option value="Price">Giá</option>
+                            <option value="PublishedYear">Năm xuất bản</option>
+                            <option value="ViewCount">Lượt xem</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Thứ tự</label>
+                        <select class="form-select" asp-for="SortDirection">
+                            <option value="desc">Giảm dần</option>
+                            <option value="asc">Tăng dần</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-search me-1"></i>Tìm kiếm
+                    </button>
+                    <a href="/Admin/Books" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-eraser me-1"></i>Xóa bộ lọc
+                    </a>
+                    <button type="button" class="btn btn-outline-success me-2" onclick="exportToExcel()">
+                        <i class="fas fa-file-excel me-1"></i>Xuất Excel
+                    </button>
+                    <button type="button" class="btn btn-outline-info" onclick="exportToCsv()">
+                        <i class="fa-solid fa-file-csv me-1"></i>Xuất Csv
+                    </button>
+                    <button class="btn btn-outline-primary ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#advancedSearch" aria-expanded="false">
+                <i class="fas fa-filter me-1"></i>Bộ lọc nâng cao
+            </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Results Summary -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <p class="text-muted mb-0">
+                    Hiển thị <strong class="text-primary">@Model.FilteredBooks</strong> / <strong>@Model.TotalBooks</strong> cuốn sách
+                    @if (Model.FilteredBooks != Model.TotalBooks)
+                    {
+                        <span class="badge bg-success ms-2">Đã lọc</span>
+                    }
+                </p>
+            </div>
+            <div>
+                <a asp-page="Create" class="btn btn-admin-primary">
+                    <i class="fas fa-plus me-2"></i>Thêm sách mới
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Results Table -->
+<div class="admin-card">
+    <div class="card-body">
+        @if (Model.Books.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="text-center" style="width: 80px;">Hình ảnh</th>
+                            <th style="min-width: 200px;">
+                                <a href="@Model.GetSortUrl("Title")" 
+                                   class="text-white text-decoration-none">
+                                    Tiêu đề
+                                    @if (Model.SortBy == "Title")
+                                    {
+                                        <i class="fas fa-sort-@(Model.SortDirection == "asc" ? "up" : "down") ms-1"></i>
+                                    }
+                                </a>
+                            </th>
+                            <th>
+                                <a href="?sortBy=Author&sortDirection=@(Model.SortBy == "Author" && Model.SortDirection == "asc" ? "desc" : "asc")@(Request.QueryString)" 
+                                   class="text-white text-decoration-none">
+                                    Tác giả
+                                    @if (Model.SortBy == "Author")
+                                    {
+                                        <i class="fas fa-sort-@(Model.SortDirection == "asc" ? "up" : "down") ms-1"></i>
+                                    }
+                                </a>
+                            </th>
+                            <th>
+                                <a href="?sortBy=Genre&sortDirection=@(Model.SortBy == "Genre" && Model.SortDirection == "asc" ? "desc" : "asc")@(Request.QueryString)" 
+                                   class="text-white text-decoration-none">
+                                    Thể loại
+                                    @if (Model.SortBy == "Genre")
+                                    {
+                                        <i class="fas fa-sort-@(Model.SortDirection == "asc" ? "up" : "down") ms-1"></i>
+                                    }
+                                </a>
+                            </th>
+                            <th>
+                                <a href="?sortBy=Price&sortDirection=@(Model.SortBy == "Price" && Model.SortDirection == "asc" ? "desc" : "asc")@(Request.QueryString)" 
+                                   class="text-white text-decoration-none">
+                                    Giá
+                                    @if (Model.SortBy == "Price")
+                                    {
+                                        <i class="fas fa-sort-@(Model.SortDirection == "asc" ? "up" : "down") ms-1"></i>
+                                    }
+                                </a>
+                            </th>
+                            <th>
+                                <a href="?sortBy=ViewCount&sortDirection=@(Model.SortBy == "ViewCount" && Model.SortDirection == "asc" ? "desc" : "asc")@(Request.QueryString)" 
+                                   class="text-white text-decoration-none">
+                                    Lượt xem
+                                    @if (Model.SortBy == "ViewCount")
+                                    {
+                                        <i class="fas fa-sort-@(Model.SortDirection == "asc" ? "up" : "down") ms-1"></i>
+                                    }
+                                </a>
+                            </th>
+                            <th>
+                                <a href="?sortBy=CreatedAt&sortDirection=@(Model.SortBy == "CreatedAt" && Model.SortDirection == "asc" ? "desc" : "asc")@(Request.QueryString)" 
+                                   class="text-white text-decoration-none">
+                                    Ngày tạo
+                                    @if (Model.SortBy == "CreatedAt")
+                                    {
+                                        <i class="fas fa-sort-@(Model.SortDirection == "asc" ? "up" : "down") ms-1"></i>
+                                    }
+                                </a>
+                            </th>
+                            <th class="text-center" style="width: 120px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var book in Model.Books)
+                        {
+                            <tr>
+                                <td class="text-center">
+                                    @if (!string.IsNullOrEmpty(book.UrlImage))
+                                    {
+                                        <img src="@book.UrlImage" alt="@book.Title" class="book-thumbnail rounded" style="width: 50px; height: 70px; object-fit: cover; border: 1px solid #dee2e6;">
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-light text-muted d-flex align-items-center justify-content-center rounded" style="width: 50px; height: 70px; font-size: 10px; border: 1px solid #dee2e6;">
+                                            <i class="fas fa-book"></i>
+                                        </div>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-primary">@book.Title</div>
+                                    @if (!string.IsNullOrEmpty(book.Description) && book.Description.Length > 80)
+                                    {
+                                        <small class="text-muted">@book.Description.Substring(0, 80)</small>
+                                    }
+                                    else
+                                    {
+                                        <small class="text-muted">@book.Description</small>
+                                    }
+                                    @if (book.PublishedYear.HasValue)
+                                    {
+                                        <br><small class="text-info"><i class="fas fa-calendar-alt me-1"></i>Năm XB: @book.PublishedYear</small>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="fw-medium">@book.Author?.AuthorName</span>
+                                    @if (!string.IsNullOrEmpty(book.Publisher?.PublisherName))
+                                    {
+                                        <br><small class="text-muted"><i class="fas fa-building me-1"></i>@book.Publisher.PublisherName</small>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(book.Genre))
+                                    {
+                                        <span class="badge bg-primary">@book.Genre</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (book.Price.HasValue)
+                                    {
+                                        <span class="fw-bold text-success">@book.Price.Value.ToString("N0") VND</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Miễn phí</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">@(book.ViewCount ?? 0)</span>
+                                </td>
+                                <td>
+                                    @if (book.CreatedAt.HasValue)
+                                    {
+                                        <span class="text-muted">@book.CreatedAt?.ToLocalTime().ToString("dd/MM/yyyy")</span>
+                                        <br><small class="text-muted">@book.CreatedAt?.ToLocalTime().ToString("HH:mm")</small>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a asp-page="Details" asp-route-id="@book.BookId" class="btn btn-outline-info" title="Xem chi tiết" data-bs-toggle="tooltip">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a asp-page="Edit" asp-route-id="@book.BookId" class="btn btn-outline-warning" title="Chỉnh sửa" data-bs-toggle="tooltip">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a asp-page="Delete" asp-route-id="@book.BookId" class="btn btn-outline-danger" title="Xóa" data-bs-toggle="tooltip">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-search text-muted" style="font-size: 4rem; opacity: 0.5;"></i>
+                <h5 class="text-muted mt-3">Không tìm thấy sách phù hợp</h5>
+                <p class="text-muted">Thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm.</p>
+                <a href="/Admin/Books" class="btn btn-outline-secondary me-2">
+                    <i class="fas fa-eraser me-1"></i>Xóa bộ lọc
+                </a>
+                <a asp-page="Create" class="btn btn-admin-primary">
+                    <i class="fas fa-plus me-2"></i>Thêm sách mới
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Pagination -->
+@if (Model.Books.Any())
+{
+    <nav aria-label="Phân trang" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <!-- Previous Page -->
+            @if (Model.CurrentPage > 1)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="?PageNumber=@(Model.CurrentPage - 1)@(Request.QueryString)">
+                        <i class="fas fa-chevron-left"></i> Trước
+                    </a>
+                </li>
+            }
+            else
+            {
+                <li class="page-item disabled">
+                    <span class="page-link"><i class="fas fa-chevron-left"></i> Trước</span>
+                </li>
+            }
+
+            <!-- Page Numbers -->
+            @for (int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
+            {
+                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                    <a class="page-link" href="?PageNumber=@i@(Request.QueryString)">@i</a>
+                </li>
+            }
+
+            <!-- Next Page -->
+            @if (Model.CurrentPage < Model.TotalPages)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="?PageNumber=@(Model.CurrentPage + 1)@(Request.QueryString)">
+                        Sau <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            }
+            else
+            {
+                <li class="page-item disabled">
+                    <span class="page-link">Sau <i class="fas fa-chevron-right"></i></span>
+                </li>
+            }
+        </ul>
+    </nav>
+
+    <!-- Page Info -->
+    <div class="text-center text-muted mt-2">
+        <small>
+            Trang @Model.CurrentPage / @Model.TotalPages 
+            (Hiển thị @((Model.CurrentPage - 1) * 10 + 1) - @Math.Min(Model.CurrentPage * 10, Model.FilteredBooks) trong tổng số @Model.FilteredBooks kết quả)
+        </small>
+    </div>
+}
+
+@section Scripts{
+    <script>
+        $(document).ready(function() {
+
+            const datePickerOptions = {
+                display: {
+                    components: {
+                        decades: false,
+                        date: true,
+                        month: true,
+                        year: true,
+                        hours: false,
+                        minutes: false,
+                        seconds: false
+                    },
+                    buttons: {
+                        today: true,
+                        clear: true,
+                        close: true          // ✅ có nút Đóng
+                    },
+                    keepOpen: false,          // ✅ chọn xong là đóng
+                    theme: 'light',
+                    placement: 'bottom'
+                    },
+                    localization: {
+                        locale: 'vi',
+                        format: 'dd/MM/yyyy',
+                        startOfTheWeek: 1, // Thứ 2 là đầu tuần
+                        clear: 'Xóa',
+                        close: 'Đóng',
+                        today: 'Hôm nay'
+                    },
+            };
+
+            new tempusDominus.TempusDominus(document.getElementById('dateFromPicker'), datePickerOptions);
+            new tempusDominus.TempusDominus(document.getElementById('dateToPicker'), datePickerOptions);
+
+
+            // Initialize tooltips with jQuery
+            $('[data-bs-toggle="tooltip"]').each(function() {
+                new bootstrap.Tooltip(this);
+            });
+
+            // Export functions with jQuery
+            window.exportToExcel = function() {
+                const $form = $('#searchForm');
+                const url = new URL('/Admin/Books?handler=ExportExcel', window.location.origin);
+                
+                // Add all form data to URL parameters using jQuery
+                const formData = $form.serializeArray();
+                $.each(formData, function(index, field) {
+                    if (field.value) {
+                        url.searchParams.append(field.name, field.value);
+                    }
+                });
+                
+                window.open(url.toString(), '_blank');
+            };
+
+            window.exportToCsv = function() {
+                const $form = $('#searchForm');
+                const url = new URL('/Admin/Books?handler=ExportCsv', window.location.origin);
+
+                // Add all form data to URL parameters using jQuery
+                const formData = $form.serializeArray();
+                $.each(formData, function(index, field) {
+                    if (field.value) {
+                        url.searchParams.append(field.name, field.value);
+                    }
+                });
+
+                window.open(url.toString(), '_blank');
+            };
+
+            // Validate input ranges with jQuery
+            // Year range validation
+            $('input[name="MinYear"]').on('change', function() {
+                const $maxYear = $('input[name="MaxYear"]');
+                if (this.value && $maxYear.length) {
+                    $maxYear.attr('min', this.value);
+                }
+            });
+
+            $('input[name="MaxYear"]').on('change', function() {
+                const $minYear = $('input[name="MinYear"]');
+                if (this.value && $minYear.length) {
+                    $minYear.attr('max', this.value);
+                }
+            });
+
+            // Price range validation
+            $('input[name="MinPrice"]').on('change', function() {
+                const $maxPrice = $('input[name="MaxPrice"]');
+                if (this.value && $maxPrice.length) {
+                    $maxPrice.attr('min', this.value);
+                }
+            });
+
+            $('input[name="MaxPrice"]').on('change', function() {
+                const $minPrice = $('input[name="MinPrice"]');
+                if (this.value && $minPrice.length) {
+                    $minPrice.attr('max', this.value);
+                }
+            });
+
+            // Form validation before submit
+            $('#searchForm').on('submit', function(e) {
+                // Validate date range
+                const fromDate = $('#dateFromPicker input').val();
+                const toDate = $('#dateToPicker input').val();
+
+                if (fromDate && toDate) {
+                    const from = new Date(fromDate.split('/').reverse().join('-'));
+                    const to = new Date(toDate.split('/').reverse().join('-'));
+
+                    if (from > to) {
+                        e.preventDefault();
+                        alert('Ngày bắt đầu không thể lớn hơn ngày kết thúc!');
+                        return false;
+                    }
+                }
+
+                // Validate year range
+                const minYear = $('input[name="MinYear"]').val();
+                const maxYear = $('input[name="MaxYear"]').val();
+
+                if (minYear && maxYear && parseInt(minYear) > parseInt(maxYear)) {
+                    e.preventDefault();
+                    alert('Năm bắt đầu không thể lớn hơn năm kết thúc!');
+                    return false;
+                }
+
+                // Validate price range
+                const minPrice = $('input[name="MinPrice"]').val();
+                const maxPrice = $('input[name="MaxPrice"]').val();
+
+                if (minPrice && maxPrice && parseFloat(minPrice) > parseFloat(maxPrice)) {
+                    e.preventDefault();
+                    alert('Giá bắt đầu không thể lớn hơn giá kết thúc!');
+                    return false;
+                }
+            });
+        });
+    </script>
+}

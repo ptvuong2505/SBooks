@@ -1,0 +1,154 @@
+@page
+@model SBooks.Pages.Auth.RegisterModel
+@{
+    ViewData["Title"] = "Đăng ký";
+    Layout = "_Layout";
+}
+
+<style>
+    .register-container {
+        max-width: 480px;
+        margin: 60px auto;
+        background: #ffffff;
+        padding: 2rem 2.5rem;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .register-container h2 {
+        text-align: center;
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #444;
+    }
+
+    .btn-register {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 12px 24px;
+        font-weight: 500;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-register:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .form-control {
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        padding: 12px 16px;
+        font-size: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+
+    .alert {
+        border-radius: 8px;
+        border: none;
+    }
+
+    .login-link {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .login-link:hover {
+        color: #764ba2;
+        text-decoration: underline;
+    }
+</style>
+
+<div class="register-container">
+    <h2><i class="fas fa-user-plus"></i> Đăng ký tài khoản</h2>
+    
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger" role="alert">
+            <i class="fas fa-exclamation-triangle"></i> @Model.ErrorMessage
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+    {
+        <div class="alert alert-success" role="alert">
+            <i class="fas fa-check-circle"></i> @Model.SuccessMessage
+        </div>
+    }
+
+    <form method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        
+        <div class="mb-3">
+            <label asp-for="Input.Username" class="form-label">
+                <i class="fas fa-user"></i> Tên đăng nhập
+            </label>
+            <input asp-for="Input.Username" class="form-control" placeholder="Nhập tên đăng nhập" />
+            <span asp-validation-for="Input.Username" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Input.Email" class="form-label">
+                <i class="fas fa-envelope"></i> Email
+            </label>
+            <input asp-for="Input.Email" type="email" class="form-control" placeholder="Nhập email" />
+            <span asp-validation-for="Input.Email" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Input.FullName" class="form-label">
+                <i class="fas fa-id-card"></i> Họ tên
+            </label>
+            <input asp-for="Input.FullName" class="form-control" placeholder="Nhập họ tên đầy đủ" />
+            <span asp-validation-for="Input.FullName" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Input.Password" class="form-label">
+                <i class="fas fa-lock"></i> Mật khẩu
+            </label>
+            <input asp-for="Input.Password" type="password" class="form-control" placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)" />
+            <span asp-validation-for="Input.Password" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Input.ConfirmPassword" class="form-label">
+                <i class="fas fa-lock"></i> Xác nhận mật khẩu
+            </label>
+            <input asp-for="Input.ConfirmPassword" type="password" class="form-control" placeholder="Nhập lại mật khẩu" />
+            <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+        </div>
+
+        <div class="d-grid mb-3">
+            <button type="submit" class="btn btn-register text-white">
+                <i class="fas fa-user-plus"></i> Đăng ký
+            </button>
+        </div>
+    </form>
+
+    <hr>
+    <div class="text-center">
+        <p class="mb-0">
+            Đã có tài khoản? 
+            <a href="/Auth/Login" class="login-link">
+                <i class="fas fa-sign-in-alt"></i> Đăng nhập ngay
+            </a>
+        </p>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,348 @@
+@page
+@model EditModel
+@{
+    ViewData["Title"] = "Chỉnh sửa sách";
+    Layout = "_AdminLayout";
+}
+
+<!-- Page Header -->
+<div class="admin-card mb-4">
+    <div class="card-header bg-warning text-dark">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+                <i class="fas fa-edit me-2"></i>Chỉnh sửa sách
+            </h4>
+            <div>
+                <a asp-page="Details" asp-route-id="@Model.Book.BookId" class="btn btn-light btn-sm me-2">
+                    <i class="fas fa-eye me-1"></i>Xem chi tiết
+                </a>
+                <a asp-page="Index" class="btn btn-light btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i>Quay lại danh sách
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Form -->
+<div class="admin-card">
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data" id="editBookForm">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            <input type="hidden" asp-for="Book.BookId" />
+            <input type="hidden" asp-for="Book.UrlImage" />
+
+            <div class="row">
+                <!-- Left Column -->
+                <div class="col-md-8">
+                    <!-- Basic Information -->
+                    <div class="mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-info-circle me-2 text-primary"></i>Thông tin cơ bản
+                        </h5>
+                        
+                        <div class="row g-3">
+                            <!-- Title -->
+                            <div class="col-12">
+                                <label asp-for="Book.Title" class="form-label fw-bold">
+                                    Tiêu đề sách <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="Book.Title" class="form-control" placeholder="Nhập tiêu đề sách..." />
+                                <span asp-validation-for="Book.Title" class="text-danger"></span>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="col-12">
+                                <label asp-for="Book.Description" class="form-label fw-bold">Mô tả</label>
+                                <textarea asp-for="Book.Description" class="form-control" rows="4" 
+                                          placeholder="Nhập mô tả chi tiết về sách..."></textarea>
+                                <span asp-validation-for="Book.Description" class="text-danger"></span>
+                                <div class="form-text">Tối đa 2000 ký tự</div>
+                            </div>
+
+                            <!-- Genre and Published Year -->
+                            <div class="col-md-6">
+                                <label asp-for="Book.Genre" class="form-label fw-bold">Thể loại</label>
+                                <input asp-for="Book.Genre" class="form-control" placeholder="VD: Văn học, Khoa học..." />
+                                <span asp-validation-for="Book.Genre" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Book.PublishedYear" class="form-label fw-bold">Năm xuất bản</label>
+                                <input asp-for="Book.PublishedYear" type="number" class="form-control" 
+                                       min="1000" max="3000" placeholder="VD: 2024" />
+                                <span asp-validation-for="Book.PublishedYear" class="text-danger"></span>
+                            </div>
+
+                            <!-- Price -->
+                            <div class="col-md-6">
+                                <label asp-for="Book.Price" class="form-label fw-bold">Giá (VND)</label>
+                                <div class="input-group">
+                                    <input asp-for="Book.Price" type="number" class="form-control" 
+                                           min="0" step="1000" placeholder="0" />
+                                    <span class="input-group-text">VND</span>
+                                </div>
+                                <span asp-validation-for="Book.Price" class="text-danger"></span>
+                                <div class="form-text">Để trống nếu sách miễn phí</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Related Information -->
+                    <div class="mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-users me-2 text-primary"></i>Thông tin liên quan
+                        </h5>
+                        
+                        <div class="row g-3">
+                            <!-- Author -->
+                            <div class="col-md-6">
+                                <label asp-for="Book.AuthorId" class="form-label fw-bold">Tác giả</label>
+                                <select asp-for="Book.AuthorId" asp-items="Model.Authors" class="form-select">
+                                </select>
+                                <span asp-validation-for="Book.AuthorId" class="text-danger"></span>
+                                <div class="form-text">
+                                    <a href="/Admin/Authors/Create" target="_blank" class="text-decoration-none">
+                                        <i class="fas fa-plus me-1"></i>Thêm tác giả mới
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Publisher -->
+                            <div class="col-md-6">
+                                <label asp-for="Book.PublisherId" class="form-label fw-bold">Nhà xuất bản</label>
+                                <select asp-for="Book.PublisherId" asp-items="Model.Publishers" class="form-select">
+                                </select>
+                                <span asp-validation-for="Book.PublisherId" class="text-danger"></span>
+                                <div class="form-text">
+                                    <a href="/Admin/Publishers/Create" target="_blank" class="text-decoration-none">
+                                        <i class="fas fa-plus me-1"></i>Thêm nhà xuất bản mới
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="col-md-4">
+                    <!-- Image Management -->
+                    <div class="mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-image me-2 text-primary"></i>Quản lý ảnh bìa
+                        </h5>
+                        
+                        <div class="text-center">
+                            <!-- Current Image Display -->
+                            @if (!string.IsNullOrEmpty(Model.CurrentImageUrl))
+                            {
+                                <div class="mb-3" id="currentImageSection">
+                                    <p class="text-muted mb-2">Ảnh hiện tại:</p>
+                                    <img src="@Model.CurrentImageUrl" alt="Current Image" 
+                                         class="img-fluid rounded mb-2" 
+                                         style="max-height: 200px; object-fit: cover;">
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" asp-for="KeepCurrentImage" 
+                                               id="keepCurrentImage" checked>
+                                        <label class="form-check-label" for="keepCurrentImage">
+                                            Giữ ảnh hiện tại
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- New Image Preview -->
+                            <div class="image-preview mb-3" id="imagePreview" style="display: none;">
+                                <p class="text-muted mb-2">Ảnh mới:</p>
+                                <div class="preview-content"></div>
+                            </div>
+
+                            <!-- File Input -->
+                            <div class="mb-3">
+                                <label asp-for="ImageFile" class="form-label fw-bold">Thay đổi ảnh</label>
+                                <input asp-for="ImageFile" type="file" class="form-control" 
+                                       accept="image/*" onchange="previewImage(this)" />
+                                <div class="form-text">
+                                    Định dạng: JPG, PNG, GIF. Tối đa 5MB
+                                </div>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(Model.CurrentImageUrl))
+                            {
+                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeCurrentImage()">
+                                    <i class="fas fa-trash me-1"></i>Xóa ảnh hiện tại
+                                </button>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Quick Info -->
+                    <div class="card border-light bg-light">
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <i class="fas fa-info-circle me-2 text-info"></i>Thông tin sách
+                            </h6>
+                            <ul class="list-unstyled mb-0 small">
+                                <li class="mb-1">
+                                    <strong>ID:</strong> #@Model.Book.BookId
+                                </li>
+                                <li class="mb-1">
+                                    <strong>Đã tạo:</strong> Có
+                                </li>
+                                <li class="mb-0">
+                                    <strong>Trạng thái:</strong> 
+                                    <span class="badge bg-warning text-dark">Đang chỉnh sửa</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <a asp-page="Index" class="btn btn-outline-secondary me-2">
+                                <i class="fas fa-times me-2"></i>Hủy bỏ
+                            </a>
+                            <a asp-page="Details" asp-route-id="@Model.Book.BookId" class="btn btn-outline-info">
+                                <i class="fas fa-eye me-2"></i>Xem chi tiết
+                            </a>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-outline-warning me-2" onclick="resetChanges()">
+                                <i class="fas fa-undo me-2"></i>Khôi phục
+                            </button>
+                            <button type="submit" class="btn btn-admin-primary">
+                                <i class="fas fa-save me-2"></i>Lưu thay đổi
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Initialize tooltips
+            $('[data-bs-toggle="tooltip"]').each(function() {
+                new bootstrap.Tooltip(this);
+            });
+
+            // Form validation
+            $('#editBookForm').on('submit', function(e) {
+                if (!this.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                this.classList.add('was-validated');
+            });
+
+            // Handle keep current image checkbox
+            $('#keepCurrentImage').on('change', function() {
+                if (!this.checked) {
+                    // User unchecked - they want to remove current image
+                    $('#ImageFile').val('');
+                    $('#imagePreview').hide();
+                    $(this).closest('.form-check').after('<div class="alert alert-warning alert-sm mt-2" id="removeImageWarning"><small><i class="fas fa-exclamation-triangle me-1"></i>Ảnh hiện tại sẽ bị xóa khi lưu</small></div>');
+                } else {
+                    // User checked - keep current image
+                    $('#removeImageWarning').remove();
+                }
+            });
+        });
+
+        // Image preview function
+        function previewImage(input) {
+            const preview = document.getElementById('imagePreview');
+            const keepCurrentCheckbox = document.getElementById('keepCurrentImage');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    preview.querySelector('.preview-content').innerHTML = `
+                        <img src="${e.target.result}" alt="New Preview" 
+                             style="max-width: 100%; max-height: 200px; border-radius: 8px; border: 1px solid #dee2e6;">
+                        <div class="mt-2">
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeNewImage()">
+                                <i class="fas fa-trash me-1"></i>Xóa ảnh mới
+                            </button>
+                        </div>
+                    `;
+                    preview.style.display = 'block';
+                    
+                    // Uncheck keep current image since user is uploading new image
+                    if (keepCurrentCheckbox) {
+                        keepCurrentCheckbox.checked = false;
+                        $('#removeImageWarning').remove();
+                    }
+                }
+                
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
+        // Remove new image function
+        function removeNewImage() {
+            document.getElementById('ImageFile').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            
+            // Check keep current image back if there is a current image
+            const keepCurrentCheckbox = document.getElementById('keepCurrentImage');
+            if (keepCurrentCheckbox) {
+                keepCurrentCheckbox.checked = true;
+                $('#removeImageWarning').remove();
+            }
+        }
+
+        // Remove current image function
+        function removeCurrentImage() {
+            if (confirm('Bạn có chắc chắn muốn xóa ảnh hiện tại?')) {
+                const keepCurrentCheckbox = document.getElementById('keepCurrentImage');
+                if (keepCurrentCheckbox) {
+                    keepCurrentCheckbox.checked = false;
+                    keepCurrentCheckbox.dispatchEvent(new Event('change'));
+                }
+            }
+        }
+
+        // Reset changes function
+        function resetChanges() {
+            if (confirm('Bạn có chắc chắn muốn khôi phục tất cả thay đổi?')) {
+                location.reload();
+            }
+        }
+    </script>
+
+    <style>
+        .image-preview {
+            min-height: 150px;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            background-color: #f8f9fa;
+        }
+
+        .alert-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .was-validated .form-control:valid {
+            border-color: #198754;
+        }
+
+        .was-validated .form-control:invalid {
+            border-color: #dc3545;
+        }
+    </style>
+}

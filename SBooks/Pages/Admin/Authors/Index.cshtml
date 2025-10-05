@@ -1,0 +1,112 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Quản lý Tác giả";
+    Layout = "_AdminLayout";
+}
+
+<div class="page-title">
+    <h1><i class="fas fa-pen-fancy me-2"></i>Quản lý Tác giả</h1>
+    <p class="subtitle">Danh sách tất cả tác giả trong hệ thống</p>
+</div>
+
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <p class="text-muted mb-0">Tổng cộng: <strong>@Model.Authors.Count</strong> tác giả</p>
+            </div>
+            <div>
+                <a asp-page="Create" class="btn btn-admin-primary">
+                    <i class="fas fa-plus me-2"></i>Thêm tác giả mới
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    @if (Model.Authors.Any())
+    {
+        @foreach (var author in Model.Authors)
+        {
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="admin-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start">
+                            <div class="flex-shrink-0">
+                                <div class="bg-success rounded-circle d-flex align-items-center justify-content-center" 
+                                     style="width: 60px; height: 60px;">
+                                    <i class="fas fa-user text-white fa-lg"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="card-title mb-1">@author.AuthorName</h5>
+                                @if (!string.IsNullOrEmpty(author.Email))
+                                {
+                                    <p class="text-muted small mb-1">
+                                        <i class="fas fa-envelope me-1"></i>@author.Email
+                                    </p>
+                                }
+                                @if (author.BirthDate.HasValue)
+                                {
+                                    <p class="text-muted small mb-1">
+                                        <i class="fas fa-birthday-cake me-1"></i>@author.BirthDate.Value.ToString("dd/MM/yyyy")
+                                    </p>
+                                }
+                                @if (!string.IsNullOrEmpty(author.Sex))
+                                {
+                                    <p class="text-muted small mb-2">
+                                        <i class="fas fa-venus-mars me-1"></i>@author.Sex
+                                    </p>
+                                }
+                                
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <span class="badge bg-primary">@author.Books.Count sách</span>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a asp-page="Details" asp-route-id="@author.AuthorId" 
+                                           class="btn btn-outline-info" title="Xem chi tiết">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a asp-page="Edit" asp-route-id="@author.AuthorId" 
+                                           class="btn btn-outline-warning" title="Chỉnh sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a asp-page="Delete" asp-route-id="@author.AuthorId" 
+                                           class="btn btn-outline-danger" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        @if (!string.IsNullOrEmpty(author.Biography))
+                        {
+                            <div class="mt-3 pt-3 border-top">
+                                <p class="card-text small text-muted">
+                                    @(author.Biography.Length > 100 ? author.Biography.Substring(0, 100) + "..." : author.Biography)
+                                </p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col-12">
+            <div class="admin-card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-pen-fancy fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Chưa có tác giả nào</h5>
+                    <p class="text-muted">Hãy thêm tác giả đầu tiên vào hệ thống</p>
+                    <a asp-page="Create" class="btn btn-admin-primary">
+                        <i class="fas fa-plus me-2"></i>Thêm tác giả mới
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>

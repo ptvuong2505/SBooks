@@ -1,0 +1,205 @@
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SBooks Admin</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <!-- Tempus Dominus CSS -->
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@@eonasdan/tempus-dominus@6.9.5/dist/css/tempus-dominus.min.css" />
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+    <!-- Admin Layout CSS -->
+    <link rel="stylesheet" href="~/css/_AdminLayout.css" asp-append-version="true" />
+</head>
+
+<body>
+    <!-- Admin Header -->
+    <nav class="navbar navbar-expand-lg admin-header">
+        <div class="container-fluid">
+            <button class="sidebar-toggle me-3" type="button" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <a class="navbar-brand" href="/Admin/Dashboard">
+                <i class="fas fa-shield-alt me-2"></i>SBooks Admin
+            </a>
+
+            <div class="navbar-nav ms-auto">
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-user me-1"></i>@(User.Identity?.Name ?? "Admin")
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="/Profile">
+                                <i class="fas fa-user-circle me-2"></i>Hồ sơ
+                            </a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" href="/Auth/Logout">
+                                <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                            </a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <div class="admin-sidebar" id="adminSidebar">
+        <ul class="sidebar-menu">
+            <li
+                class="@(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("Dashboard") == true ? "active" : "")">
+                <a href="/Admin/Dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span class="menu-label">Dashboard</span>
+                </a>
+            </li>
+
+            <li class="@(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("Books") == true ? "active" : "")">
+                <a href="/Admin/Books">
+                    <i class="fas fa-book"></i>
+                    <span class="menu-label">Quản lý Sách</span>
+                </a>
+            </li>
+
+            <li
+                class="@(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("Authors") == true ? "active" : "")">
+                <a href="/Admin/Authors">
+                    <i class="fas fa-pen-fancy"></i>
+                    <span class="menu-label">Quản lý Tác giả</span>
+                    @if (ViewData["TotalAuthors"] != null)
+                    {
+                        <span class="badge bg-success">@ViewData["TotalAuthors"]</span>
+                    }
+                </a>
+            </li>
+
+            <li class="@(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("Users") == true ? "active" : "")">
+                <a href="/Admin/Users">
+                    <i class="fas fa-users"></i>
+                    <span class="menu-label">Quản lý Người dùng</span>
+                    @if (ViewData["TotalUsers"] != null)
+                    {
+                        <span class="badge bg-info">@ViewData["TotalUsers"]</span>
+                    }
+                </a>
+            </li>
+
+            <li>
+                <a href="/Admin/Publishers">
+                    <i class="fas fa-building"></i>
+                    <span class="menu-label">Nhà xuất bản</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="/Admin/Reviews">
+                    <i class="fas fa-star"></i>
+                    <span class="menu-label">Đánh giá</span>
+                    @if (ViewData["TotalReviews"] != null)
+                    {
+                        <span class="badge bg-warning">@ViewData["TotalReviews"]</span>
+                    }
+                </a>
+            </li>
+
+            <li>
+                <a href="/Admin/Reports">
+                    <i class="fas fa-chart-bar"></i>
+                    <span class="menu-label">Báo cáo</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="/Admin/Settings">
+                    <i class="fas fa-cog"></i>
+                    <span class="menu-label">Cài đặt</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- Main Content -->
+    <div class="admin-content">
+        <!-- Page Content -->
+        <main role="main">
+            @RenderBody()
+        </main>
+    </div>
+
+
+    <!-- Scripts bootstrap and jquery -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Tempus Dominus -->
+    <script src="https://cdn.jsdelivr.net/npm/@@eonasdan/tempus-dominus@6.9.5/dist/js/tempus-dominus.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <!-- Admin specific JavaScript with jQuery -->
+    <script>
+        $(document).ready(function () {
+            // Sidebar toggle functionality
+            window.toggleSidebar = function () {
+                const $sidebar = $('#adminSidebar');
+                const $overlay = $('#sidebarOverlay');
+
+                $sidebar.toggleClass('show');
+                $overlay.toggleClass('show');
+            };
+
+            // Close sidebar when clicking outside on mobile
+            $(document).on('click', function (event) {
+                const $sidebar = $('#adminSidebar');
+                const $toggle = $('.sidebar-toggle');
+
+                if ($(window).width() <= 768 &&
+                    !$sidebar.is(event.target) && $sidebar.has(event.target).length === 0 &&
+                    !$toggle.is(event.target) && $toggle.has(event.target).length === 0 &&
+                    $sidebar.hasClass('show')) {
+                    toggleSidebar();
+                }
+            });
+
+            // Handle window resize
+            $(window).on('resize', function () {
+                const $sidebar = $('#adminSidebar');
+                const $overlay = $('#sidebarOverlay');
+
+                if ($(window).width() > 768) {
+                    $sidebar.removeClass('show');
+                    $overlay.removeClass('show');
+                }
+            });
+
+            // Initialize tooltips with jQuery
+            $('[data-bs-toggle="tooltip"]').each(function () {
+                new bootstrap.Tooltip(this);
+            });
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+
+</html>
