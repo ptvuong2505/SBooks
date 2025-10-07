@@ -1,0 +1,647 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Báo cáo Thống kê";
+    Layout = "_AdminLayout";
+}
+
+<!-- CDN cho Chart.js và jsPDF -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+<script
+    src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<!-- Page Header -->
+<div class="admin-card mb-4">
+    <div class="card-header bg-dark text-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+                <i class="fas fa-chart-bar me-2"></i>Báo cáo Thống kê
+            </h4>
+            <div>
+                <button type="button" class="btn btn-success btn-sm me-2" onclick="exportToPDF()">
+                    <i class="fas fa-file-pdf me-1"></i>Xuất PDF
+                </button>
+                <button type="button" class="btn btn-info btn-sm" onclick="refreshCharts()">
+                    <i class="fas fa-sync-alt me-1"></i>Làm mới
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Section -->
+<div class="admin-card mb-4">
+    <div class="card-body p-3">
+        <form method="get" id="filterForm">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Loại báo cáo</label>
+                    <select class="form-select" asp-for="ReportType" onchange="updateReportType()">
+                        <option value="overview">Tổng quan</option>
+                        <option value="books">Sách</option>
+                        <option value="authors">Tác giả</option>
+                        <option value="publishers">Nhà xuất bản</option>
+                        <option value="users">Người dùng</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Khoảng thời gian</label>
+                    <select class="form-select" asp-for="DateRange" onchange="updateDateRange()">
+                        <option value="last7days">7 ngày qua</option>
+                        <option value="last30days">30 ngày qua</option>
+                        <option value="last90days">90 ngày qua</option>
+                        <option value="thismonth">Tháng này</option>
+                        <option value="last6months">6 tháng qua</option>
+                        <option value="thisyear">Năm này</option>
+                        <option value="lastyear">Năm qua</option>
+                        <option value="custom">Tùy chọn</option>
+                    </select>
+                </div>
+                <div class="col-md-2" id="startDateContainer" style="display: none;">
+                    <label class="form-label fw-bold">Từ ngày</label>
+                    <input type="date" class="form-control" asp-for="StartDate">
+                </div>
+                <div class="col-md-2" id="endDateContainer" style="display: none;">
+                    <label class="form-label fw-bold">Đến ngày</label>
+                    <input type="date" class="form-control" asp-for="EndDate">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">&nbsp;</label>
+                    <div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter me-1"></i>Lọc
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Overview Statistics -->
+<div class="row mb-4" id="overviewStats">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="admin-card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h2 class="mb-0">@Model.TotalBooks</h2>
+                        <p class="mb-0">Tổng sách</p>
+                        <small class="opacity-75">+@Model.BooksThisMonth tháng này</small>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-book fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="admin-card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h2 class="mb-0">@Model.TotalAuthors</h2>
+                        <p class="mb-0">Tác giả</p>
+                        <small class="opacity-75">Trung bình @(Model.TotalBooks > 0 && Model.TotalAuthors > 0 ?
+                                                        Math.Round((double)Model.TotalBooks / Model.TotalAuthors, 1) : 0) sách/tác giả</small>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-user-edit fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="admin-card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h2 class="mb-0">@Model.TotalPublishers</h2>
+                        <p class="mb-0">Nhà xuất bản</p>
+                        <small class="opacity-75">Trung bình @(Model.TotalBooks > 0 && Model.TotalPublishers > 0 ?
+                                                        Math.Round((double)Model.TotalBooks / Model.TotalPublishers, 1) : 0) sách/NXB</small>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-building fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="admin-card bg-warning text-dark">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h2 class="mb-0">@Model.TotalUsers</h2>
+                        <p class="mb-0">Người dùng</p>
+                        <small class="opacity-75">+@Model.NewUsersThisMonth tháng này</small>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-users fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Grid -->
+<div class="row" id="chartsContainer">
+    <!-- Books Timeline Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="admin-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Xu hướng thêm sách</h5>
+                <a href="/Admin/Reports/Books" class="btn btn-sm btn-outline-success">
+                    <i class="fas fa-external-link-alt me-1"></i>Chi tiết
+                </a>
+            </div>
+            <div class="card-body">
+                <canvas id="booksTimelineChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Books by Genre Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="admin-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Sách theo thể loại</h5>
+                <a href="/Admin/Reports/Books" class="btn btn-sm btn-outline-success">
+                    <i class="fas fa-external-link-alt me-1"></i>Chi tiết
+                </a>
+            </div>
+            <div class="card-body">
+                <canvas id="booksByGenreChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Authors Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="admin-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Tác giả hàng đầu</h5>
+                <a href="/Admin/Reports/Authors" class="btn btn-sm btn-outline-info">
+                    <i class="fas fa-external-link-alt me-1"></i>Chi tiết
+                </a>
+            </div>
+            <div class="card-body">
+                <canvas id="topAuthorsChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Publishers Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="admin-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Nhà xuất bản hàng đầu</h5>
+                <a href="/Admin/Reports/Publishers" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-external-link-alt me-1"></i>Chi tiết
+                </a>
+            </div>
+            <div class="card-body">
+                <canvas id="topPublishersChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Books by Year Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="admin-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-area me-2"></i>Sách theo năm xuất bản</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="booksByYearChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Activity Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="admin-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Hoạt động người dùng</h5>
+                <a href="/Admin/Reports/Users" class="btn btn-sm btn-outline-warning">
+                    <i class="fas fa-external-link-alt me-1"></i>Chi tiết
+                </a>
+            </div>
+            <div class="card-body">
+                <canvas id="userActivityChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Report Links -->
+<div class="admin-card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-link me-2"></i>Báo cáo chuyên sâu</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <div class="d-grid">
+                    <a href="/Admin/Reports/Books" class="btn btn-outline-success">
+                        <i class="fas fa-book me-2"></i>
+                        <div>Báo cáo Sách</div>
+                        <small class="text-muted">Thống kê chi tiết về sách</small>
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="d-grid">
+                    <a href="/Admin/Reports/Authors" class="btn btn-outline-info">
+                        <i class="fas fa-user-edit me-2"></i>
+                        <div>Báo cáo Tác giả</div>
+                        <small class="text-muted">Phân tích tác giả và tác phẩm</small>
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="d-grid">
+                    <a href="/Admin/Reports/Publishers" class="btn btn-outline-primary">
+                        <i class="fas fa-building me-2"></i>
+                        <div>Báo cáo NXB</div>
+                        <small class="text-muted">Thống kê nhà xuất bản</small>
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="d-grid">
+                    <a href="/Admin/Reports/Users" class="btn btn-outline-warning">
+                        <i class="fas fa-users me-2"></i>
+                        <div>Báo cáo Người dùng</div>
+                        <small class="text-muted">Hoạt động và xu hướng</small>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Data from server
+        const chartData = {
+            booksTimeline: @Html.Raw(Model.BooksTimelineJson),
+            booksByGenre: @Html.Raw(Model.BooksByGenreJson),
+            booksByYear: @Html.Raw(Model.BooksByYearJson),
+            topAuthors: @Html.Raw(Model.TopAuthorsJson),
+            topPublishers: @Html.Raw(Model.TopPublishersJson),
+            userActivity: @Html.Raw(Model.UserActivityJson),
+            reviewsTimeline: @Html.Raw(Model.ReviewsTimelineJson)
+                                    };
+
+        // Chart instances
+        let charts = {};
+
+        // Colors
+        const colors = {
+            primary: '#0d6efd',
+            success: '#198754',
+            info: '#0dcaf0',
+            warning: '#ffc107',
+            danger: '#dc3545',
+            dark: '#212529'
+        };
+
+        // Initialize charts when page loads
+        document.addEventListener('DOMContentLoaded', function () {
+            initializeCharts();
+            updateDateRangeVisibility();
+        });
+
+        function initializeCharts() {
+            // Books Timeline Chart
+            createTimelineChart('booksTimelineChart', chartData.booksTimeline, 'Số sách đã thêm', colors.primary);
+
+            // Books by Genre Chart
+            createPieChart('booksByGenreChart', chartData.booksByGenre, 'Genre', 'Count');
+
+            // Books by Year Chart
+            createBarChart('booksByYearChart', chartData.booksByYear, 'Year', 'Count', 'Năm xuất bản', 'Số sách', colors.info);
+
+            // Top Authors Chart
+            createHorizontalBarChart('topAuthorsChart', chartData.topAuthors, 'Name', 'BookCount', 'Tác giả', 'Số sách', colors.success);
+
+            // Top Publishers Chart
+            createHorizontalBarChart('topPublishersChart', chartData.topPublishers, 'Name', 'BookCount', 'Nhà xuất bản', 'Số sách', colors.info);
+
+            // User Activity Chart
+            createTimelineChart('userActivityChart', chartData.userActivity, 'Người dùng mới', colors.warning);
+        }
+
+        function createTimelineChart(canvasId, data, label, color) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+
+            charts[canvasId] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        borderColor: color,
+                        backgroundColor: color + '20',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                displayFormats: {
+                                    day: 'MMM dd'
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function createPieChart(canvasId, data, labelField, valueField) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+
+            const backgroundColors = [
+                colors.primary, colors.success, colors.info, colors.warning, colors.danger,
+                '#6f42c1', '#fd7e14', '#20c997', '#e83e8c', '#6c757d'
+            ];
+
+            charts[canvasId] = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.map(item => item[labelField]),
+                    datasets: [{
+                        data: data.map(item => item[valueField]),
+                        backgroundColor: backgroundColors.slice(0, data.length),
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed * 100) / total).toFixed(1);
+                                    return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createBarChart(canvasId, data, labelField, valueField, xLabel, yLabel, color) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+
+            charts[canvasId] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(item => item[labelField]),
+                    datasets: [{
+                        label: yLabel,
+                        data: data.map(item => item[valueField]),
+                        backgroundColor: color + '80',
+                        borderColor: color,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: xLabel
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: yLabel
+                            },
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function createHorizontalBarChart(canvasId, data, labelField, valueField, xLabel, yLabel, color) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+
+            charts[canvasId] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(item => item[labelField]),
+                    datasets: [{
+                        label: yLabel,
+                        data: data.map(item => item[valueField]),
+                        backgroundColor: color + '80',
+                        borderColor: color,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: yLabel
+                            },
+                            ticks: {
+                                stepSize: 1
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: xLabel
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateDateRange() {
+            updateDateRangeVisibility();
+            document.getElementById('filterForm').submit();
+        }
+
+        function updateDateRangeVisibility() {
+            const dateRange = document.querySelector('[name="DateRange"]').value;
+            const startContainer = document.getElementById('startDateContainer');
+            const endContainer = document.getElementById('endDateContainer');
+
+            if (dateRange === 'custom') {
+                startContainer.style.display = 'block';
+                endContainer.style.display = 'block';
+            } else {
+                startContainer.style.display = 'none';
+                endContainer.style.display = 'none';
+            }
+        }
+
+        function updateReportType() {
+            // Tương lai có thể thêm logic để hiển/ẩn các biểu đồ theo loại báo cáo
+            document.getElementById('filterForm').submit();
+        }
+
+        function refreshCharts() {
+            // Destroy existing charts
+            Object.values(charts).forEach(chart => {
+                if (chart) chart.destroy();
+            });
+            charts = {};
+
+            // Reload page to get fresh data
+            window.location.reload();
+        }
+
+        async function exportToPDF() {
+            try {
+                // Show loading
+                const btn = event.target;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Đang xuất...';
+                btn.disabled = true;
+
+                // Get report data
+                const response = await fetch('/Admin/Reports?handler=ExportPdf');
+                const reportData = await response.json();
+
+                // Create PDF
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+
+                // Title
+                pdf.setFontSize(20);
+                pdf.text('BÁO CÁO THỐNG KÊ HỆ THỐNG SBOOKS', 20, 30);
+
+                // Generation info
+                pdf.setFontSize(12);
+                pdf.text('Ngày tạo: ' + new Date(reportData.generatedAt).toLocaleString('vi-VN'), 20, 45);
+                pdf.text('Khoảng thời gian: ' + new Date(reportData.dateRange.startDate).toLocaleDateString('vi-VN') + ' - ' + new Date(reportData.dateRange.endDate).toLocaleDateString('vi-VN'), 20, 55);
+
+                // Statistics
+                pdf.setFontSize(16);
+                pdf.text('THỐNG KÊ TỔNG QUAN', 20, 75);
+
+                pdf.setFontSize(12);
+                let yPos = 90;
+                pdf.text('Tổng số sách: ' + reportData.statistics.totalBooks, 30, yPos);
+                pdf.text('Tổng số tác giả: ' + reportData.statistics.totalAuthors, 30, yPos + 10);
+                pdf.text('Tổng số nhà xuất bản: ' + reportData.statistics.totalPublishers, 30, yPos + 20);
+                pdf.text('Tổng số người dùng: ' + reportData.statistics.totalUsers, 30, yPos + 30);
+                pdf.text('Tổng số đánh giá: ' + reportData.statistics.totalReviews, 30, yPos + 40);
+                pdf.text('Sách thêm tháng này: ' + reportData.statistics.booksThisMonth, 30, yPos + 50);
+                pdf.text('Người dùng mới tháng này: ' + reportData.statistics.newUsersThisMonth, 30, yPos + 60);
+
+                // Capture charts and add to PDF
+                yPos = 170;
+                const chartElements = document.querySelectorAll('canvas');
+
+                for (let i = 0; i < Math.min(chartElements.length, 4); i++) {
+                    if (yPos > 250) {
+                        pdf.addPage();
+                        yPos = 30;
+                    }
+
+                    const canvas = chartElements[i];
+                    const chartTitle = canvas.closest('.admin-card').querySelector('.card-header h5').textContent;
+
+                    // Add chart title
+                    pdf.setFontSize(14);
+                    pdf.text(chartTitle, 20, yPos);
+
+                    // Add chart image
+                    const imgData = canvas.toDataURL('image/png');
+                    pdf.addImage(imgData, 'PNG', 20, yPos + 5, 170, 85);
+
+                    yPos += 100;
+                }
+
+                // Save PDF
+                const fileName = 'BaoCao_SBooks_' + new Date().toISOString().slice(0, 10) + '.pdf';
+                pdf.save(fileName);
+
+                // Reset button
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+
+            } catch (error) {
+                console.error('Lỗi xuất PDF:', error);
+                alert('Có lỗi xảy ra khi xuất PDF');
+
+                // Reset button
+                const btn = event.target;
+                btn.innerHTML = '<i class="fas fa-file-pdf me-1"></i>Xuất PDF';
+                btn.disabled = false;
+            }
+        }
+    </script>
+}

@@ -1,0 +1,231 @@
+@page
+@model EditModel
+@{
+    ViewData["Title"] = "Chỉnh sửa Nhà xuất bản";
+    Layout = "_AdminLayout";
+}
+
+<!-- Page Header -->
+<div class="admin-card mb-4">
+    <div class="card-header bg-warning text-dark">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+                <i class="fas fa-edit me-2"></i>Chỉnh sửa Nhà xuất bản
+            </h4>
+            <div>
+                <a asp-page="Details" asp-route-id="@Model.Publisher.PublisherId" class="btn btn-info btn-sm me-2">
+                    <i class="fas fa-eye me-1"></i>Xem chi tiết
+                </a>
+                <a asp-page="Index" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i>Quay lại
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <form method="post">
+            <input type="hidden" asp-for="Input.PublisherId" />
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            
+            <!-- Basic Information -->
+            <div class="admin-card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Thông tin cơ bản</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <label asp-for="Input.PublisherName" class="form-label fw-bold">Tên nhà xuất bản <span class="text-danger">*</span></label>
+                        <input asp-for="Input.PublisherName" class="form-control" placeholder="Nhập tên nhà xuất bản...">
+                        <span asp-validation-for="Input.PublisherName" class="text-danger"></span>
+                        <div id="nameValidation" class="form-text"></div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label asp-for="Input.Address" class="form-label fw-bold">Địa chỉ</label>
+                        <textarea asp-for="Input.Address" class="form-control" rows="3" placeholder="Nhập địa chỉ nhà xuất bản..."></textarea>
+                        <span asp-validation-for="Input.Address" class="text-danger"></span>
+                        <div class="form-text">Ví dụ: Số 123, Đường ABC, Quận XYZ, TP. Hồ Chí Minh</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label asp-for="Input.Website" class="form-label fw-bold">Website</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-globe"></i></span>
+                            <input asp-for="Input.Website" class="form-control" placeholder="https://example.com hoặc example.com">
+                        </div>
+                        <span asp-validation-for="Input.Website" class="text-danger"></span>
+                        <div class="form-text">Có thể bắt đầu bằng https:// hoặc chỉ tên miền</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Submit Buttons -->
+            <div class="admin-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <a asp-page="Index" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>Hủy
+                        </a>
+                        <button type="submit" class="btn btn-admin-primary">
+                            <i class="fas fa-save me-2"></i>Cập nhật
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Preview Section -->
+    <div class="col-lg-4">
+        <div class="admin-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-eye me-2"></i>Xem trước</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" 
+                     style="width: 80px; height: 80px;">
+                    <i class="fas fa-building text-white fa-2x"></i>
+                </div>
+                
+                <h5 id="previewName" class="text-muted mb-3">@Model.Input.PublisherName</h5>
+                
+                <div class="text-start">
+                    <div id="previewAddress" class="mb-2">
+                        @if (!string.IsNullOrEmpty(Model.Input.Address))
+                        {
+                            <i class="fas fa-map-marker-alt text-warning me-2"></i>@Model.Input.Address
+                        }
+                        else
+                        {
+                            <i class="fas fa-map-marker-alt text-muted me-2"></i><span class="text-muted">Địa chỉ</span>
+                        }
+                    </div>
+                    
+                    <div id="previewWebsite" class="mb-3">
+                        @if (!string.IsNullOrEmpty(Model.Input.Website))
+                        {
+                            <i class="fas fa-globe text-warning me-2"></i>
+                            <a href="@(Model.Input.Website.StartsWith("http") ? Model.Input.Website : "https://" + Model.Input.Website)" 
+                               target="_blank" class="text-decoration-none">@Model.Input.Website</a>
+                        }
+                        else
+                        {
+                            <i class="fas fa-globe text-muted me-2"></i><span class="text-muted">Website</span>
+                        }
+                    </div>
+                </div>
+                
+                <div class="badge bg-warning mb-3">@Model.Publisher.Books.Count sách</div>
+            </div>
+        </div>
+        
+        <!-- Publisher Stats -->
+        <div class="admin-card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Thống kê</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-12 mb-3">
+                        <h6 class="text-warning mb-0">@Model.Publisher.Books.Count</h6>
+                        <small class="text-muted">Sách đã xuất bản</small>
+                    </div>
+                </div>
+                
+                @if (Model.Publisher.Books.Any())
+                {
+                    var newestBook = Model.Publisher.Books.OrderByDescending(b => b.CreatedAt).FirstOrDefault();
+                    var oldestBook = Model.Publisher.Books.OrderBy(b => b.CreatedAt).FirstOrDefault();
+                    
+                    <hr>
+                    <small class="text-muted">
+                        <i class="fas fa-book me-1"></i>
+                        Mới nhất: @newestBook?.Title
+                        @if (newestBook?.CreatedAt.HasValue == true)
+                        {
+                            <br><span class="ms-3">(@newestBook.CreatedAt.Value.ToString("dd/MM/yyyy"))</span>
+                        }
+                    </small>
+                }
+            </div>
+        </div>
+        
+        <!-- Change History -->
+        <div class="admin-card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-history me-2"></i>Thông tin gốc</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless">
+                    <tr>
+                        <td class="fw-bold" style="width: 35%;">Tên cũ:</td>
+                        <td class="text-break">@Model.Publisher.PublisherName</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Địa chỉ cũ:</td>
+                        <td class="text-break">@(!string.IsNullOrEmpty(Model.Publisher.Address) ? Model.Publisher.Address : "Trống")</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Website cũ:</td>
+                        <td class="text-break">@(!string.IsNullOrEmpty(Model.Publisher.Website) ? Model.Publisher.Website : "Trống")</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script type="text/javascript">
+        $(document).ready(function() {
+            function updatePreview() {
+                var name = $('#Input_PublisherName').val() || 'Tên nhà xuất bản';
+                var address = $('#Input_Address').val();
+                var website = $('#Input_Website').val();
+                
+                $('#previewName').text(name);
+                
+                if (address && address.trim() !== '') {
+                    $('#previewAddress').html('<i class="fas fa-map-marker-alt text-warning me-2"></i>' + address);
+                } else {
+                    $('#previewAddress').html('<i class="fas fa-map-marker-alt text-muted me-2"></i><span class="text-muted">Địa chỉ</span>');
+                }
+                
+                if (website && website.trim() !== '') {
+                    var displayWebsite = website.length > 25 ? website.substring(0, 25) + '...' : website;
+                    $('#previewWebsite').html('<i class="fas fa-globe text-warning me-2"></i><a href="#" class="text-decoration-none">' + displayWebsite + '</a>');
+                } else {
+                    $('#previewWebsite').html('<i class="fas fa-globe text-muted me-2"></i><span class="text-muted">Website</span>');
+                }
+            }
+            
+            $('#Input_PublisherName, #Input_Address, #Input_Website').on('input', updatePreview);
+            
+            var nameTimeout;
+            $('#Input_PublisherName').on('input', function() {
+                var name = $(this).val();
+                var publisherId = $('#Input_PublisherId').val();
+                clearTimeout(nameTimeout);
+                
+                if (name.length >= 2) {
+                    nameTimeout = setTimeout(function() {
+                        $.get('/Admin/Publishers/Edit?handler=CheckName', { name: name, publisherId: publisherId })
+                            .done(function(data) {
+                                if (data.available) {
+                                    $('#nameValidation').html('<span class="text-success"><i class="fas fa-check me-1"></i>Tên nhà xuất bản khả dụng</span>');
+                                } else {
+                                    $('#nameValidation').html('<span class="text-danger"><i class="fas fa-times me-1"></i>Tên nhà xuất bản đã tồn tại</span>');
+                                }
+                            });
+                    }, 500);
+                } else {
+                    $('#nameValidation').empty();
+                }
+            });
+        });
+    </script>
+}

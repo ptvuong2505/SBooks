@@ -1,0 +1,240 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Quản lý Nhà xuất bản";
+    Layout = "_AdminLayout";
+}
+
+<!-- Page Header -->
+<div class="admin-card mb-4">
+    <div class="card-header bg-info text-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+                <i class="fas fa-building me-2"></i>Quản lý Nhà xuất bản
+            </h4>
+            <a asp-page="Create" class="btn btn-light btn-sm">
+                <i class="fas fa-plus me-1"></i>Thêm nhà xuất bản mới
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Search Section -->
+<div class="admin-card mb-4">
+    <div class="card-body p-3">
+        <form method="get" id="searchForm">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-5">
+                    <label class="form-label fw-bold">Tìm kiếm</label>
+                    <input type="text" class="form-control" asp-for="SearchTerm" placeholder="Tên nhà xuất bản, địa chỉ hoặc website...">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Sắp xếp</label>
+                    <select class="form-select" asp-for="SortBy">
+                        <option value="PublisherName">Tên nhà xuất bản</option>
+                        <option value="Address">Địa chỉ</option>
+                        <option value="Website">Website</option>
+                        <option value="BookCount">Số sách</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">Thứ tự</label>
+                    <select class="form-select" asp-for="SortDirection">
+                        <option value="asc">Tăng dần</option>
+                        <option value="desc">Giảm dần</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">&nbsp;</label>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        <a href="/Admin/Publishers" class="btn btn-outline-secondary">
+                            <i class="fas fa-eraser"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Results Summary -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <p class="text-muted mb-0">
+                    Hiển thị <strong class="text-info">@Model.FilteredPublishers</strong> / <strong>@Model.TotalPublishers</strong> nhà xuất bản
+                    @if (Model.FilteredPublishers != Model.TotalPublishers)
+                    {
+                        <span class="badge bg-info ms-2">Đã lọc</span>
+                    }
+                </p>
+            </div>
+            <div>
+                <a asp-page="Create" class="btn btn-admin-primary">
+                    <i class="fas fa-plus me-2"></i>Thêm nhà xuất bản mới
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Publishers Grid -->
+<div class="row">
+    @if (Model.Publishers.Any())
+    {
+        @foreach (var publisher in Model.Publishers)
+        {
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="admin-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start">
+                            <div class="flex-shrink-0">
+                                <div class="bg-info rounded-circle d-flex align-items-center justify-content-center" 
+                                     style="width: 60px; height: 60px;">
+                                    <i class="fas fa-building text-white fa-lg"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="card-title mb-1">@publisher.PublisherName</h5>
+                                
+                                @if (!string.IsNullOrEmpty(publisher.Address))
+                                {
+                                    <p class="text-muted small mb-1">
+                                        <i class="fas fa-map-marker-alt me-1"></i>@publisher.Address
+                                    </p>
+                                }
+                                
+                                @if (!string.IsNullOrEmpty(publisher.Website))
+                                {
+                                    <p class="text-muted small mb-2">
+                                        <i class="fas fa-globe me-1"></i>
+                                        <a href="@(publisher.Website.StartsWith("http") ? publisher.Website : "https://" + publisher.Website)" 
+                                           target="_blank" class="text-decoration-none">
+                                            @publisher.Website
+                                        </a>
+                                    </p>
+                                }
+                                
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <span class="badge bg-info">@publisher.Books.Count sách</span>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a asp-page="Details" asp-route-id="@publisher.PublisherId" 
+                                           class="btn btn-outline-info" title="Xem chi tiết" data-bs-toggle="tooltip">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a asp-page="Edit" asp-route-id="@publisher.PublisherId" 
+                                           class="btn btn-outline-warning" title="Chỉnh sửa" data-bs-toggle="tooltip">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a asp-page="Delete" asp-route-id="@publisher.PublisherId" 
+                                           class="btn btn-outline-danger" title="Xóa" data-bs-toggle="tooltip">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col-12">
+            <div class="admin-card">
+                <div class="card-body text-center py-5">
+                    @if (!string.IsNullOrEmpty(Model.SearchTerm))
+                    {
+                        <i class="fas fa-search text-muted" style="font-size: 4rem; opacity: 0.5;"></i>
+                        <h5 class="text-muted mt-3">Không tìm thấy nhà xuất bản phù hợp</h5>
+                        <p class="text-muted">Thử điều chỉnh từ khóa tìm kiếm.</p>
+                        <a href="/Admin/Publishers" class="btn btn-outline-secondary me-2">
+                            <i class="fas fa-eraser me-1"></i>Xóa bộ lọc
+                        </a>
+                    }
+                    else
+                    {
+                        <i class="fas fa-building fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Chưa có nhà xuất bản nào</h5>
+                        <p class="text-muted">Hãy thêm nhà xuất bản đầu tiên vào hệ thống</p>
+                    }
+                    <a asp-page="Create" class="btn btn-admin-primary">
+                        <i class="fas fa-plus me-2"></i>Thêm nhà xuất bản mới
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Pagination -->
+@if (Model.Publishers.Any() && Model.TotalPages > 1)
+{
+    <nav aria-label="Phân trang" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <!-- Previous Page -->
+            @if (Model.PageNumber > 1)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="?PageNumber=@(Model.PageNumber - 1)&SearchTerm=@Model.SearchTerm&SortBy=@Model.SortBy&SortDirection=@Model.SortDirection">
+                        <i class="fas fa-chevron-left"></i> Trước
+                    </a>
+                </li>
+            }
+            else
+            {
+                <li class="page-item disabled">
+                    <span class="page-link"><i class="fas fa-chevron-left"></i> Trước</span>
+                </li>
+            }
+
+            <!-- Page Numbers -->
+            @for (int i = Math.Max(1, Model.PageNumber - 2); i <= Math.Min(Model.TotalPages, Model.PageNumber + 2); i++)
+            {
+                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                    <a class="page-link" href="?PageNumber=@i&SearchTerm=@Model.SearchTerm&SortBy=@Model.SortBy&SortDirection=@Model.SortDirection">@i</a>
+                </li>
+            }
+
+            <!-- Next Page -->
+            @if (Model.PageNumber < Model.TotalPages)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="?PageNumber=@(Model.PageNumber + 1)&SearchTerm=@Model.SearchTerm&SortBy=@Model.SortBy&SortDirection=@Model.SortDirection">
+                        Sau <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            }
+            else
+            {
+                <li class="page-item disabled">
+                    <span class="page-link">Sau <i class="fas fa-chevron-right"></i></span>
+                </li>
+            }
+        </ul>
+    </nav>
+
+    <!-- Page Info -->
+    <div class="text-center text-muted mt-2">
+        <small>
+            Trang @Model.PageNumber / @Model.TotalPages 
+            (Hiển thị @((Model.PageNumber - 1) * Model.PageSize + 1) - @Math.Min(Model.PageNumber * Model.PageSize, Model.FilteredPublishers) trong tổng số @Model.FilteredPublishers kết quả)
+        </small>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Initialize tooltips
+            $('[data-bs-toggle="tooltip"]').each(function() {
+                new bootstrap.Tooltip(this);
+            });
+        });
+    </script>
+}
