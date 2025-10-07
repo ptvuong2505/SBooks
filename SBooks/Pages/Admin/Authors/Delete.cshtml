@@ -1,0 +1,330 @@
+@page
+@model DeleteModel
+@{
+    ViewData["Title"] = "Xóa tác giả";
+    Layout = "_AdminLayout";
+}
+
+<!-- Page Header -->
+<div class="admin-card mb-4">
+    <div class="card-header bg-danger text-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+                <i class="fas fa-user-times me-2"></i>Xác nhận xóa tác giả
+            </h4>
+            <div>
+                <a asp-page="Details" asp-route-id="@Model.Author.AuthorId" class="btn btn-light btn-sm me-2">
+                    <i class="fas fa-eye me-1"></i>Xem chi tiết
+                </a>
+                <a asp-page="Index" class="btn btn-light btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i>Quay lại danh sách
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Error Message -->
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        @Model.ErrorMessage
+    </div>
+}
+
+<!-- Warning Notice -->
+<div class="alert alert-warning" role="alert">
+    <div class="d-flex align-items-center">
+        <i class="fas fa-exclamation-triangle me-3" style="font-size: 1.5rem;"></i>
+        <div>
+            <h5 class="alert-heading mb-1">Cảnh báo!</h5>
+            <p class="mb-0">Bạn có chắc chắn muốn xóa tác giả này? <strong>Hành động này không thể hoàn tác.</strong>
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Author Information -->
+    <div class="col-md-8">
+        <div class="admin-card h-100">
+            <div class="card-body">
+                <h5 class="border-bottom pb-2 mb-3 text-danger">
+                    <i class="fas fa-user me-2"></i>Thông tin tác giả sẽ bị xóa
+                </h5>
+
+                <dl class="row">
+                    <dt class="col-sm-3">ID:</dt>
+                    <dd class="col-sm-9">
+                        <code class="text-danger">#@Model.Author.AuthorId</code>
+                    </dd>
+
+                    <dt class="col-sm-3">Tên tác giả:</dt>
+                    <dd class="col-sm-9">
+                        <span class="fw-bold text-primary h5">@Model.Author.AuthorName</span>
+                    </dd>
+
+                    <dt class="col-sm-3">Email:</dt>
+                    <dd class="col-sm-9">
+                        @if (!string.IsNullOrEmpty(Model.Author.Email))
+                        {
+                            <i class="fas fa-envelope me-1"></i>
+                            @Model.Author.Email
+                        }
+                        else
+                        {
+                            <em class="text-muted">Chưa có email</em>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-3">Giới tính:</dt>
+                    <dd class="col-sm-9">
+                        @if (!string.IsNullOrEmpty(Model.Author.Sex))
+                        {
+                            <span class="badge bg-secondary">@Model.Author.Sex</span>
+                        }
+                        else
+                        {
+                            <em class="text-muted">Chưa xác định</em>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-3">Ngày sinh:</dt>
+                    <dd class="col-sm-9">
+                        @if (Model.Author.BirthDate.HasValue)
+                        {
+                            <span class="badge bg-info">@Model.Author.BirthDate.Value.ToString("dd/MM/yyyy")</span>
+                        }
+                        else
+                        {
+                            <em class="text-muted">Chưa có thông tin</em>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-3">Số lượng sách:</dt>
+                    <dd class="col-sm-9">
+                        @if (Model.BookCount > 0)
+                        {
+                            <span class="badge bg-warning text-dark">@Model.BookCount cuốn sách</span>
+                            <small class="text-danger d-block mt-1">
+                                <i class="fas fa-exclamation-circle me-1"></i>
+                                Cần xử lý trước khi xóa!
+                            </small>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">0 cuốn sách - Có thể xóa</span>
+                        }
+                    </dd>
+                </dl>
+
+                @if (!string.IsNullOrEmpty(Model.Author.Biography))
+                {
+                    <div class="mt-3">
+                        <dt>Tiểu sử:</dt>
+                        <dd class="mt-2">
+                            <div class="border rounded p-3 bg-light">
+                                @(Model.Author.Biography.Length > 200 ? Model.Author.Biography.Substring(0, 200) + "..." :
+                                                            Model.Author.Biography)
+                            </div>
+                        </dd>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Author Avatar and Impact -->
+    <div class="col-md-4">
+        <div class="admin-card h-100">
+            <div class="card-body">
+                <!-- Author Avatar -->
+                <div class="text-center mb-4">
+                    <h5 class="border-bottom pb-2 mb-3">
+                        <i class="fas fa-user me-2 text-primary"></i>Tác giả
+                    </h5>
+
+                    <div class="bg-danger rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+                        style="width: 100px; height: 100px;">
+                        <i class="fas fa-user text-white" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h6 class="text-danger">@Model.Author.AuthorName</h6>
+                </div>
+
+                <!-- Impact Notice -->
+                <div class="card border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-exclamation-circle me-2"></i>Tác động khi xóa
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0 small">
+                            <li class="mb-2">
+                                <i class="fas fa-times text-danger me-2"></i>
+                                Thông tin tác giả sẽ bị xóa vĩnh viễn
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-times text-danger me-2"></i>
+                                Không thể khôi phục sau khi xóa
+                            </li>
+                            @if (Model.BookCount > 0)
+                            {
+                                <li class="mb-2">
+                                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                    @Model.BookCount sách sẽ mất thông tin tác giả
+                                </li>
+                            }
+                            <li class="mb-0">
+                                <i class="fas fa-shield-alt text-info me-2"></i>
+                                Hệ thống sẽ kiểm tra ràng buộc dữ liệu
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Related Books Section -->
+@if (Model.AuthorBooks.Any())
+{
+    <div class="admin-card mt-4">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0">
+                <i class="fas fa-book me-2"></i>
+                Sách liên quan (@Model.BookCount) - Cần xử lý trước khi xóa
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-warning" role="alert">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Không thể xóa tác giả khi còn sách liên quan.</strong>
+                Vui lòng xóa các sách hoặc chuyển sang tác giả khác trước.
+            </div>
+
+            <div class="row">
+                @foreach (var book in Model.AuthorBooks)
+                {
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card border-warning">
+                            <div class="card-body">
+                                <div class="d-flex">
+                                    <div class="flex-shrink-0 me-3">
+                                        @if (!string.IsNullOrEmpty(book.UrlImage))
+                                        {
+                                            <img src="@book.UrlImage" alt="@book.Title" class="rounded"
+                                                style="width: 40px; height: 55px; object-fit: cover;">
+                                        }
+                                        else
+                                        {
+                                            <div class="bg-light d-flex align-items-center justify-content-center rounded"
+                                                style="width: 40px; height: 55px;">
+                                                <i class="fas fa-book text-muted"></i>
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="card-title mb-1">
+                                            <a asp-page="/Admin/Books/Details" asp-route-id="@book.BookId"
+                                                class="text-decoration-none">
+                                                @book.Title
+                                            </a>
+                                        </h6>
+                                        @if (book.Publisher != null)
+                                        {
+                                            <small class="text-muted d-block">@book.Publisher.PublisherName</small>
+                                        }
+                                        <div class="mt-2">
+                                            <a asp-page="/Admin/Books/Edit" asp-route-id="@book.BookId"
+                                                class="btn btn-outline-warning btn-sm">
+                                                <i class="fas fa-edit me-1"></i>Sửa
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @if (Model.BookCount > 5)
+            {
+                <div class="text-center">
+                    <p class="text-muted">Và @(Model.BookCount - 5) cuốn sách khác...</p>
+                    <a asp-page="/Admin/Books/Index" asp-route-AuthorId="@Model.Author.AuthorId"
+                        class="btn btn-outline-primary">
+                        <i class="fas fa-list me-2"></i>Xem tất cả @Model.BookCount sách
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<!-- Action Buttons -->
+<div class="admin-card mt-4">
+    <div class="card-body">
+        <form method="post">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <a asp-page="Index" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
+                    </a>
+                    <a asp-page="Details" asp-route-id="@Model.Author.AuthorId" class="btn btn-outline-info me-2">
+                        <i class="fas fa-eye me-2"></i>Xem chi tiết
+                    </a>
+                    <a asp-page="Edit" asp-route-id="@Model.Author.AuthorId" class="btn btn-outline-warning">
+                        <i class="fas fa-edit me-2"></i>Chỉnh sửa thay vì xóa
+                    </a>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-outline-secondary me-2" onclick="window.history.back()">
+                        <i class="fas fa-times me-2"></i>Hủy bỏ
+                    </button>
+                    @if (Model.BookCount == 0)
+                    {
+                        <button type="submit" class="btn btn-danger" onclick="return confirmDelete()">
+                            <i class="fas fa-trash-alt me-2"></i>Xác nhận xóa
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-danger" disabled title="Không thể xóa khi còn sách liên quan">
+                            <i class="fas fa-ban me-2"></i>Không thể xóa
+                        </button>
+                    }
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function confirmDelete() {
+            return confirm('Bạn có CHẮC CHẮN muốn xóa tác giả "' + '@Html.Raw(Html.Encode(Model.Author.AuthorName))' + '"?\\n\\nHành động này KHÔNG THỂ HOÀN TÁC!');
+        }
+
+        // Auto focus on cancel button for safety
+        $(document).ready(function () {
+            // Don't auto focus on delete button for safety
+            $('.btn-outline-secondary').first().focus();
+        });
+    </script>
+
+    <style>
+        .alert-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .btn-danger:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+    </style>
+}

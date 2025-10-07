@@ -1,0 +1,295 @@
+@page
+@model DeleteModel
+@{
+    ViewData["Title"] = "Xóa Người dùng";
+    Layout = "_AdminLayout";
+}
+
+<!-- Page Header -->
+<div class="admin-card mb-4">
+    <div class="card-header bg-danger text-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+                <i class="fas fa-user-times me-2"></i>Xóa Người dùng
+            </h4>
+            <div>
+                <a asp-page="Details" asp-route-id="@Model.User.UserId" class="btn btn-info btn-sm me-2">
+                    <i class="fas fa-eye me-1"></i>Xem chi tiết
+                </a>
+                <a asp-page="Index" class="btn btn-light btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i>Quay lại
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- User Information -->
+    <div class="col-lg-8">
+        <!-- Warning Alert -->
+        <div class="alert alert-danger" role="alert">
+            <h5 class="alert-heading">
+                <i class="fas fa-exclamation-triangle me-2"></i>Cảnh báo!
+            </h5>
+            <p class="mb-2">
+                Bạn đang chuẩn bị xóa người dùng <strong>@Model.User.Username</strong>. 
+                Hành động này <strong>không thể hoàn tác</strong>!
+            </p>
+            @if (Model.HasDependencies)
+            {
+                <hr>
+                <p class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Người dùng này có dữ liệu liên quan sẽ bị xóa cùng.
+                </p>
+            }
+        </div>
+        
+        <!-- User Details Card -->
+        <div class="admin-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-user me-2"></i>Thông tin người dùng</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="fw-bold" style="width: 40%;">Tên đăng nhập:</td>
+                                <td>@Model.User.Username</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Email:</td>
+                                <td class="text-break">@Model.User.Email</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Họ tên:</td>
+                                <td>@(!string.IsNullOrEmpty(Model.User.FullName) ? Model.User.FullName : "Không có")</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Trạng thái:</td>
+                                <td>
+                                    @if (Model.User.IsActive == true)
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check me-1"></i>Hoạt động
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-times me-1"></i>Không hoạt động
+                                        </span>
+                                    }
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="fw-bold" style="width: 40%;">Vai trò:</td>
+                                <td>
+                                    <span class="badge @Model.GetUserRoleBadgeClass()">@Model.GetUserRole()</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Ngày tạo:</td>
+                                <td>
+                                    @if (Model.User.CreatedAt.HasValue)
+                                    {
+                                        @Model.User.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm")
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Không có thông tin</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">ID:</td>
+                                <td><code>@Model.User.UserId</code></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Impact Analysis -->
+        <div class="admin-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Phân tích tác động</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3 mb-3">
+                        <div class="border rounded p-3 @(Model.BookCount > 0 ? "border-danger bg-danger bg-opacity-10" : "border-success bg-success bg-opacity-10")">
+                            <h4 class="@(Model.BookCount > 0 ? "text-danger" : "text-success") mb-1">@Model.BookCount</h4>
+                            <small class="text-muted">Sách</small>
+                            @if (Model.BookCount > 0)
+                            {
+                                <div class="mt-2">
+                                    <i class="fas fa-exclamation-triangle text-danger"></i>
+                                    <small class="text-danger d-block">Cản chặn!</small>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="border rounded p-3 @(Model.ReviewCount > 0 ? "border-warning bg-warning bg-opacity-10" : "border-success bg-success bg-opacity-10")">
+                            <h4 class="@(Model.ReviewCount > 0 ? "text-warning" : "text-success") mb-1">@Model.ReviewCount</h4>
+                            <small class="text-muted">Đánh giá</small>
+                            @if (Model.ReviewCount > 0)
+                            {
+                                <div class="mt-2">
+                                    <small class="text-warning d-block">Sẽ bị xóa</small>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="border rounded p-3 @(Model.FavoriteCount > 0 ? "border-info bg-info bg-opacity-10" : "border-success bg-success bg-opacity-10")">
+                            <h4 class="@(Model.FavoriteCount > 0 ? "text-info" : "text-success") mb-1">@Model.FavoriteCount</h4>
+                            <small class="text-muted">Yêu thích</small>
+                            @if (Model.FavoriteCount > 0)
+                            {
+                                <div class="mt-2">
+                                    <small class="text-info d-block">Sẽ bị xóa</small>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="border rounded p-3 @(Model.ActivityLogCount > 0 ? "border-secondary bg-secondary bg-opacity-10" : "border-success bg-success bg-opacity-10")">
+                            <h4 class="@(Model.ActivityLogCount > 0 ? "text-secondary" : "text-success") mb-1">@Model.ActivityLogCount</h4>
+                            <small class="text-muted">Hoạt động</small>
+                            @if (Model.ActivityLogCount > 0)
+                            {
+                                <div class="mt-2">
+                                    <small class="text-secondary d-block">Sẽ bị xóa</small>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                
+                @if (Model.BookCount > 0)
+                {
+                    <div class="alert alert-danger mt-3">
+                        <i class="fas fa-ban me-2"></i>
+                        <strong>Không thể xóa!</strong> 
+                        Người dùng này có <strong>@Model.BookCount sách</strong> liên quan. 
+                        Hãy xóa hoặc chuyển đổi các sách trước khi xóa người dùng.
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-success mt-3">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Người dùng này có thể được xóa an toàn.
+                    </div>
+                }
+            </div>
+        </div>
+        
+        <!-- Confirmation Section -->
+        <form method="post">
+            <div class="admin-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <a asp-page="Index" class="btn btn-secondary me-2">
+                                <i class="fas fa-times me-2"></i>Hủy bỏ
+                            </a>
+                            <a asp-page="Edit" asp-route-id="@Model.User.UserId" class="btn btn-outline-warning">
+                                <i class="fas fa-edit me-2"></i>Chỉnh sửa thay thế
+                            </a>
+                        </div>
+                        
+                        @if (Model.BookCount == 0)
+                        {
+                            <button type="submit" class="btn btn-danger" 
+                                    onclick="return confirm('Bạn có chắc chắn muốn xóa người dùng @Model.User.Username? Hành động này không thể hoàn tác!')">
+                                <i class="fas fa-trash me-2"></i>Xác nhận xóa
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button" class="btn btn-danger" disabled>
+                                <i class="fas fa-ban me-2"></i>Không thể xóa
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <!-- User Avatar -->
+    <div class="col-lg-4">
+        <div class="admin-card">
+            <div class="card-body text-center">
+                <div class="bg-danger rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" 
+                     style="width: 100px; height: 100px;">
+                    <i class="fas fa-user text-white fa-3x"></i>
+                </div>
+                
+                <h4 class="card-title mb-1">@Model.User.Username</h4>
+                @if (!string.IsNullOrEmpty(Model.User.FullName))
+                {
+                    <p class="text-muted mb-2">@Model.User.FullName</p>
+                }
+                
+                <span class="badge @Model.GetUserRoleBadgeClass() mb-3">@Model.GetUserRole()</span>
+                
+                <div class="row text-center mt-4">
+                    <div class="col-4">
+                        <div class="border-end">
+                            <h6 class="text-primary mb-0">@Model.BookCount</h6>
+                            <small class="text-muted">Sách</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border-end">
+                            <h6 class="text-warning mb-0">@Model.ReviewCount</h6>
+                            <small class="text-muted">Đánh giá</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <h6 class="text-success mb-0">@Model.FavoriteCount</h6>
+                        <small class="text-muted">Yêu thích</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="admin-card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-tools me-2"></i>Hành động khác</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a asp-page="Details" asp-route-id="@Model.User.UserId" class="btn btn-outline-info btn-sm">
+                        <i class="fas fa-eye me-2"></i>Xem chi tiết
+                    </a>
+                    <a asp-page="Edit" asp-route-id="@Model.User.UserId" class="btn btn-outline-warning btn-sm">
+                        <i class="fas fa-edit me-2"></i>Chỉnh sửa
+                    </a>
+                    @if (Model.BookCount > 0)
+                    {
+                        <a href="#" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-book me-2"></i>Quản lý sách (@Model.BookCount)
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

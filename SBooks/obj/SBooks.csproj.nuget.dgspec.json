@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "E:\\FsoftProject\\SBooks\\SBooks.csproj": {}
+    "e:\\FsoftProject\\SBooks\\SBooks.csproj": {}
   },
   "projects": {
-    "E:\\FsoftProject\\SBooks\\SBooks.csproj": {
+    "e:\\FsoftProject\\SBooks\\SBooks.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\FsoftProject\\SBooks\\SBooks.csproj",
+        "projectUniqueName": "e:\\FsoftProject\\SBooks\\SBooks.csproj",
         "projectName": "SBooks",
-        "projectPath": "E:\\FsoftProject\\SBooks\\SBooks.csproj",
+        "projectPath": "e:\\FsoftProject\\SBooks\\SBooks.csproj",
         "packagesPath": "C:\\Users\\ADMIN\\.nuget\\packages\\",
-        "outputPath": "E:\\FsoftProject\\SBooks\\obj\\",
+        "outputPath": "e:\\FsoftProject\\SBooks\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

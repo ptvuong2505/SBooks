@@ -1,0 +1,305 @@
+@page
+@model DetailsModel
+@{
+    ViewData["Title"] = "Chi tiết tác giả";
+    Layout = "_AdminLayout";
+}
+
+<!-- Page Header -->
+<div class="admin-card mb-4">
+    <div class="card-header bg-info text-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+                <i class="fas fa-user me-2"></i>Chi tiết tác giả
+            </h4>
+            <div>
+                <a asp-page="Edit" asp-route-id="@Model.Author.AuthorId" class="btn btn-light btn-sm me-2">
+                    <i class="fas fa-edit me-1"></i>Chỉnh sửa
+                </a>
+                <a asp-page="Index" class="btn btn-light btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i>Quay lại danh sách
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Left Column - Author Info -->
+    <div class="col-md-4">
+        <div class="admin-card h-100">
+            <div class="card-body text-center">
+                <h5 class="border-bottom pb-2 mb-3">
+                    <i class="fas fa-id-card me-2 text-primary"></i>Thông tin cá nhân
+                </h5>
+                
+                <!-- Author Avatar -->
+                <div class="bg-success rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" 
+                     style="width: 100px; height: 100px;">
+                    <i class="fas fa-user text-white" style="font-size: 2.5rem;"></i>
+                </div>
+
+                <h4 class="text-primary mb-2">@Model.Author.AuthorName</h4>
+
+                @if (!string.IsNullOrEmpty(Model.Author.Email))
+                {
+                    <p class="text-muted mb-2">
+                        <i class="fas fa-envelope me-2"></i>@Model.Author.Email
+                    </p>
+                }
+
+                @if (Model.Author.BirthDate.HasValue)
+                {
+                    <p class="text-muted mb-2">
+                        <i class="fas fa-birthday-cake me-2"></i>
+                        @Model.Author.BirthDate.Value.ToString("dd/MM/yyyy")
+                        @{
+                            var age = DateTime.Now.Year - Model.Author.BirthDate.Value.Year;
+                            if (DateTime.Now.DayOfYear < Model.Author.BirthDate.Value.DayOfYear)
+                                age--;
+                        }
+                        <small class="text-muted">(@age tuổi)</small>
+                    </p>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.Author.Sex))
+                {
+                    <p class="text-muted mb-3">
+                        <i class="fas fa-venus-mars me-2"></i>@Model.Author.Sex
+                    </p>
+                }
+
+                <!-- Quick Stats -->
+                <div class="row text-center mt-4">
+                    <div class="col-6">
+                        <div class="border rounded p-3">
+                            <div class="fw-bold text-primary h5 mb-0">@Model.TotalBooksCount</div>
+                            <small class="text-muted">Tác phẩm</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="border rounded p-3">
+                            <div class="fw-bold text-success h5 mb-0">@Model.TotalViewsCount</div>
+                            <small class="text-muted">Lượt xem</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column - Biography and Books -->
+    <div class="col-md-8">
+        <!-- Biography Section -->
+        <div class="admin-card mb-4">
+            <div class="card-body">
+                <h5 class="border-bottom pb-2 mb-3">
+                    <i class="fas fa-feather-alt me-2 text-primary"></i>Tiểu sử
+                </h5>
+                
+                @if (!string.IsNullOrEmpty(Model.Author.Biography))
+                {
+                    <div class="border rounded p-3 bg-light">
+                        <p class="mb-0" style="line-height: 1.6; text-align: justify;">
+                            @Model.Author.Biography
+                        </p>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="fas fa-file-alt text-muted" style="font-size: 3rem; opacity: 0.5;"></i>
+                        <p class="text-muted mt-2">Chưa có thông tin tiểu sử</p>
+                        <a asp-page="Edit" asp-route-id="@Model.Author.AuthorId" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-plus me-1"></i>Thêm tiểu sử
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- System Information -->
+        <div class="admin-card mb-4">
+            <div class="card-body">
+                <h5 class="border-bottom pb-2 mb-3">
+                    <i class="fas fa-cog me-2 text-primary"></i>Thông tin hệ thống
+                </h5>
+                
+                <dl class="row">
+                    <dt class="col-sm-3">ID tác giả:</dt>
+                    <dd class="col-sm-9">
+                        <code>@Model.Author.AuthorId</code>
+                    </dd>
+
+                    <dt class="col-sm-3">Tên đầy đủ:</dt>
+                    <dd class="col-sm-9">
+                        <span class="fw-bold">@Model.Author.AuthorName</span>
+                    </dd>
+
+                    <dt class="col-sm-3">Email liên hệ:</dt>
+                    <dd class="col-sm-9">
+                        @if (!string.IsNullOrEmpty(Model.Author.Email))
+                        {
+                            <a href="mailto:@Model.Author.Email" class="text-decoration-none">
+                                <i class="fas fa-envelope me-1"></i>@Model.Author.Email
+                            </a>
+                        }
+                        else
+                        {
+                            <em class="text-muted">Chưa có email</em>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-3">Giới tính:</dt>
+                    <dd class="col-sm-9">
+                        @if (!string.IsNullOrEmpty(Model.Author.Sex))
+                        {
+                            <span class="badge bg-secondary">@Model.Author.Sex</span>
+                        }
+                        else
+                        {
+                            <em class="text-muted">Chưa xác định</em>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-3">Ngày sinh:</dt>
+                    <dd class="col-sm-9">
+                        @if (Model.Author.BirthDate.HasValue)
+                        {
+                            <span class="badge bg-info">@Model.Author.BirthDate.Value.ToString("dd/MM/yyyy")</span>
+                        }
+                        else
+                        {
+                            <em class="text-muted">Chưa có thông tin</em>
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Books Section -->
+<div class="admin-card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-book me-2 text-primary"></i>
+            Các tác phẩm (@Model.TotalBooksCount)
+        </h5>
+    </div>
+    <div class="card-body">
+        @if (Model.AuthorBooks.Any())
+        {
+            <div class="row">
+                @foreach (var book in Model.AuthorBooks)
+                {
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card h-100 border">
+                            <div class="card-body">
+                                <div class="d-flex">
+                                    <!-- Book Image -->
+                                    <div class="flex-shrink-0 me-3">
+                                        @if (!string.IsNullOrEmpty(book.UrlImage))
+                                        {
+                                            <img src="@book.UrlImage" alt="@book.Title" 
+                                                 class="rounded" style="width: 50px; height: 70px; object-fit: cover;">
+                                        }
+                                        else
+                                        {
+                                            <div class="bg-light d-flex align-items-center justify-content-center rounded" 
+                                                 style="width: 50px; height: 70px;">
+                                                <i class="fas fa-book text-muted"></i>
+                                            </div>
+                                        }
+                                    </div>
+                                    <!-- Book Info -->
+                                    <div class="flex-grow-1">
+                                        <h6 class="card-title mb-1">
+                                            <a asp-page="/Admin/Books/Details" asp-route-id="@book.BookId" 
+                                               class="text-decoration-none">
+                                                @book.Title
+                                            </a>
+                                        </h6>
+                                        
+                                        @if (book.Publisher != null)
+                                        {
+                                            <small class="text-muted d-block">
+                                                <i class="fas fa-building me-1"></i>@book.Publisher.PublisherName
+                                            </small>
+                                        }
+                                        
+                                        @if (book.PublishedYear.HasValue)
+                                        {
+                                            <small class="text-muted d-block">
+                                                <i class="fas fa-calendar me-1"></i>@book.PublishedYear
+                                            </small>
+                                        }
+                                        
+                                        <div class="d-flex justify-content-between align-items-center mt-2">
+                                            <div>
+                                                @if (book.Price.HasValue)
+                                                {
+                                                    <small class="text-success fw-bold">@book.Price.Value.ToString("N0") VND</small>
+                                                }
+                                                else
+                                                {
+                                                    <small class="text-muted">Miễn phí</small>
+                                                }
+                                            </div>
+                                            <div>
+                                                <small class="text-info">
+                                                    <i class="fas fa-eye me-1"></i>@(book.ViewCount ?? 0)
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-book-open text-muted" style="font-size: 4rem; opacity: 0.5;"></i>
+                <h5 class="text-muted mt-3">Chưa có tác phẩm nào</h5>
+                <p class="text-muted">Tác giả này chưa có cuốn sách nào trong hệ thống.</p>
+                <a asp-page="/Admin/Books/Create" asp-route-authorId="@Model.Author.AuthorId" 
+                   class="btn btn-outline-primary">
+                    <i class="fas fa-plus me-2"></i>Thêm sách cho tác giả
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="admin-card mt-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <a asp-page="Index" class="btn btn-outline-secondary me-2">
+                    <i class="fas fa-list me-2"></i>Danh sách tác giả
+                </a>
+                <a asp-page="/Admin/Books/Index" asp-route-AuthorId="@Model.Author.AuthorId" 
+                   class="btn btn-outline-info">
+                    <i class="fas fa-search me-2"></i>Xem tất cả sách của tác giả
+                </a>
+            </div>
+            <div>
+                <a asp-page="/Admin/Books/Create" asp-route-authorId="@Model.Author.AuthorId" 
+                   class="btn btn-outline-success me-2">
+                    <i class="fas fa-plus me-2"></i>Thêm sách mới
+                </a>
+                <a asp-page="Edit" asp-route-id="@Model.Author.AuthorId" class="btn btn-warning me-2">
+                    <i class="fas fa-edit me-2"></i>Chỉnh sửa
+                </a>
+                <a asp-page="Delete" asp-route-id="@Model.Author.AuthorId" class="btn btn-danger">
+                    <i class="fas fa-trash me-2"></i>Xóa
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

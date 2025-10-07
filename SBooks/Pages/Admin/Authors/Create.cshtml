@@ -1,0 +1,296 @@
+@page
+@model CreateModel
+@{
+    ViewData["Title"] = "Thêm tác giả mới";
+    Layout = "_AdminLayout";
+}
+
+<!-- Page Header -->
+<div class="admin-card mb-4">
+    <div class="card-header bg-primary text-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+                <i class="fas fa-user-plus me-2"></i>Thêm tác giả mới
+            </h4>
+            <a asp-page="Index" class="btn btn-light btn-sm">
+                <i class="fas fa-arrow-left me-1"></i>Quay lại danh sách
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Form -->
+<div class="admin-card">
+    <div class="card-body">
+        <form method="post" id="createAuthorForm">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            <div class="row">
+                <!-- Left Column -->
+                <div class="col-md-8">
+                    <!-- Basic Information -->
+                    <div class="mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-info-circle me-2 text-primary"></i>Thông tin cơ bản
+                        </h5>
+                        
+                        <div class="row g-3">
+                            <!-- Author Name -->
+                            <div class="col-12">
+                                <label asp-for="Author.AuthorName" class="form-label fw-bold">
+                                    Tên tác giả <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="Author.AuthorName" class="form-control" placeholder="Nhập tên đầy đủ của tác giả..." />
+                                <span asp-validation-for="Author.AuthorName" class="text-danger"></span>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="col-md-6">
+                                <label asp-for="Author.Email" class="form-label fw-bold">Email</label>
+                                <input asp-for="Author.Email" type="email" class="form-control" placeholder="tac.gia@email.com" />
+                                <span asp-validation-for="Author.Email" class="text-danger"></span>
+                                <div class="form-text">Email phải là duy nhất trong hệ thống</div>
+                            </div>
+
+                            <!-- Sex -->
+                            <div class="col-md-6">
+                                <label asp-for="Author.Sex" class="form-label fw-bold">Giới tính</label>
+                                <select asp-for="Author.Sex" class="form-select">
+                                    <option value="">-- Chọn giới tính --</option>
+                                    <option value="Nam">Nam</option>
+                                    <option value="Nữ">Nữ</option>
+                                    <option value="Khác">Khác</option>
+                                </select>
+                                <span asp-validation-for="Author.Sex" class="text-danger"></span>
+                            </div>
+
+                            <!-- Birth Date -->
+                            <div class="col-md-6">
+                                <label asp-for="Author.BirthDate" class="form-label fw-bold">Ngày sinh</label>
+                                <div class="input-group" id="birthDatePicker" data-td-target-input="nearest" data-td-target-toggle="nearest">
+                                    <input asp-for="Author.BirthDate" type="date" class="form-control" 
+                                           data-td-target="#birthDatePicker" />
+                                    <span class="input-group-text" data-td-target="#birthDatePicker" data-td-toggle="datetimepicker">
+                                        <i class="fas fa-calendar"></i>
+                                    </span>
+                                </div>
+                                <span asp-validation-for="Author.BirthDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Biography -->
+                    <div class="mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-feather-alt me-2 text-primary"></i>Tiểu sử
+                        </h5>
+                        
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label asp-for="Author.Biography" class="form-label fw-bold">Tiểu sử tác giả</label>
+                                <textarea asp-for="Author.Biography" class="form-control" rows="6" 
+                                          placeholder="Nhập thông tin tiểu sử, sự nghiệp, các tác phẩm nổi bật của tác giả..."></textarea>
+                                <span asp-validation-for="Author.Biography" class="text-danger"></span>
+                                <div class="form-text">Tối đa 2000 ký tự. Hãy viết về quá trình sáng tác, các giải thưởng, và những đóng góp của tác giả.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="col-md-4">
+                    <!-- Author Preview -->
+                    <div class="mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-user me-2 text-primary"></i>Xem trước
+                        </h5>
+                        
+                        <div class="text-center">
+                            <div class="bg-success rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" 
+                                 style="width: 80px; height: 80px;">
+                                <i class="fas fa-user text-white fa-2x"></i>
+                            </div>
+                            <h6 class="author-preview-name text-muted">Tên tác giả sẽ hiển thị ở đây</h6>
+                            <p class="author-preview-email small text-muted mb-2">email sẽ hiển thị ở đây</p>
+                            <p class="author-preview-info small text-muted"></p>
+                        </div>
+                    </div>
+
+                    <!-- Quick Info -->
+                    <div class="card border-light bg-light">
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <i class="fas fa-lightbulb me-2 text-warning"></i>Gợi ý
+                            </h6>
+                            <ul class="list-unstyled mb-0 small">
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Tên tác giả nên đầy đủ và chính xác
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Email giúp liên lạc và xác thực
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Tiểu sử chi tiết giúp độc giả hiểu hơn
+                                </li>
+                                <li class="mb-0">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Thông tin chính xác tăng độ tin cậy
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Statistics -->
+                    <div class="card border-primary mt-3">
+                        <div class="card-body text-center">
+                            <h6 class="card-title text-primary">
+                                <i class="fas fa-chart-bar me-2"></i>Sau khi thêm
+                            </h6>
+                            <p class="mb-1">Tác giả có thể được:</p>
+                            <ul class="list-unstyled small">
+                                <li><i class="fas fa-plus text-success me-1"></i> Gán vào sách</li>
+                                <li><i class="fas fa-search text-info me-1"></i> Tìm kiếm, lọc</li>
+                                <li><i class="fas fa-eye text-warning me-1"></i> Xem bởi độc giả</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <a asp-page="Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Hủy bỏ
+                            </a>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-outline-info me-2" onclick="resetForm()">
+                                <i class="fas fa-undo me-2"></i>Đặt lại
+                            </button>
+                            <button type="submit" class="btn btn-admin-primary">
+                                <i class="fas fa-save me-2"></i>Lưu tác giả
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Initialize tooltips
+            $('[data-bs-toggle="tooltip"]').each(function() {
+                new bootstrap.Tooltip(this);
+            });
+
+            // Real-time preview update
+            function updatePreview() {
+                const name = $('#Author_AuthorName').val() || 'Tên tác giả sẽ hiển thị ở đây';
+                const email = $('#Author_Email').val() || 'email sẽ hiển thị ở đây';
+                const sex = $('#Author_Sex').val();
+                const birthDate = $('#Author_BirthDate').val();
+                
+                $('.author-preview-name').text(name);
+                $('.author-preview-email').text(email);
+                
+                let info = [];
+                if (sex) info.push(sex);
+                if (birthDate) {
+                    const date = new Date(birthDate);
+                    info.push('Sinh: ' + date.toLocaleDateString('vi-VN'));
+                }
+                $('.author-preview-info').text(info.join(' • '));
+            }
+
+            // Bind events for real-time preview
+            $('#Author_AuthorName, #Author_Email, #Author_Sex, #Author_BirthDate').on('input change', updatePreview);
+
+            // Form validation
+            $('#createAuthorForm').on('submit', function(e) {
+                if (!this.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                this.classList.add('was-validated');
+            });
+
+            // Email validation
+            $('#Author_Email').on('blur', function() {
+                const email = $(this).val();
+                if (email) {
+                    const emailRegex = /^[^\\s@@]+@@[^\\s@@]+\\.[^\\s@@]+$/;
+                    if (!emailRegex.test(email)) {
+                        $(this).addClass('is-invalid');
+                        $(this).siblings('.text-danger').text('Email không đúng định dạng');
+                    } else {
+                        $(this).removeClass('is-invalid').addClass('is-valid');
+                        $(this).siblings('.text-danger').text('');
+                    }
+                }
+            });
+
+            // Birth date validation
+            $('#Author_BirthDate').on('change', function() {
+                const birthDate = new Date($(this).val());
+                const today = new Date();
+                const age = today.getFullYear() - birthDate.getFullYear();
+                
+                if (birthDate > today) {
+                    $(this).addClass('is-invalid');
+                    $(this).siblings('.text-danger').text('Ngày sinh không thể ở tương lai');
+                } else if (age > 150) {
+                    $(this).addClass('is-invalid');
+                    $(this).siblings('.text-danger').text('Ngày sinh không hợp lý');
+                } else {
+                    $(this).removeClass('is-invalid').addClass('is-valid');
+                    $(this).siblings('.text-danger').text('');
+                }
+            });
+        });
+
+        // Reset form function
+        function resetForm() {
+            if (confirm('Bạn có chắc chắn muốn đặt lại form? Tất cả dữ liệu đã nhập sẽ bị xóa.')) {
+                document.getElementById('createAuthorForm').reset();
+                $('.author-preview-name').text('Tên tác giả sẽ hiển thị ở đây');
+                $('.author-preview-email').text('email sẽ hiển thị ở đây');
+                $('.author-preview-info').text('');
+                $('.form-control').removeClass('is-valid is-invalid');
+            }
+        }
+    </script>
+
+    <style>
+        .author-preview-name {
+            font-weight: 600;
+            color: #495057 !important;
+        }
+        
+        .was-validated .form-control:valid {
+            border-color: #198754;
+        }
+
+        .was-validated .form-control:invalid {
+            border-color: #dc3545;
+        }
+
+        .form-control.is-valid {
+            border-color: #198754;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='m2.3 6.73.19-.19 3.86-3.86a.75.75 0 0 1 1.06 1.06l-4.39 4.39a.75.75 0 0 1-1.06 0L.39 6.57a.75.75 0 1 1 1.06-1.06l.85.85z'/%3e%3c/svg%3e");
+        }
+
+        .form-control.is-invalid {
+            border-color: #dc3545;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 7.2 2.4-2.4'/%3e%3cpath d='m8.2 7.2-2.4-2.4'/%3e%3c/svg%3e");
+        }
+    </style>
+}

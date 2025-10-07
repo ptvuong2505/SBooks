@@ -1,0 +1,349 @@
+@page
+@model EditModel
+@{
+    ViewData["Title"] = "Chỉnh sửa Người dùng";
+    Layout = "_AdminLayout";
+}
+
+<!-- Page Header -->
+<div class="admin-card mb-4">
+    <div class="card-header bg-warning text-dark">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+                <i class="fas fa-user-edit me-2"></i>Chỉnh sửa Người dùng
+            </h4>
+            <div>
+                <a asp-page="Details" asp-route-id="@Model.User.UserId" class="btn btn-info btn-sm me-2">
+                    <i class="fas fa-eye me-1"></i>Xem chi tiết
+                </a>
+                <a asp-page="Index" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i>Quay lại
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <form method="post">
+            <input type="hidden" asp-for="Input.UserId" />
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            
+            <!-- Basic Information -->
+            <div class="admin-card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Thông tin cơ bản</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Input.Username" class="form-label fw-bold">Tên đăng nhập <span class="text-danger">*</span></label>
+                            <input asp-for="Input.Username" class="form-control" placeholder="Nhập tên đăng nhập...">
+                            <span asp-validation-for="Input.Username" class="text-danger"></span>
+                            <div id="usernameValidation" class="form-text"></div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Input.Email" class="form-label fw-bold">Email <span class="text-danger">*</span></label>
+                            <input asp-for="Input.Email" class="form-control" placeholder="Nhập email...">
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+                            <div id="emailValidation" class="form-text"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Input.FullName" class="form-label fw-bold">Họ tên</label>
+                            <input asp-for="Input.FullName" class="form-control" placeholder="Nhập họ tên...">
+                            <span asp-validation-for="Input.FullName" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Trạng thái</label>
+                            <div class="form-check form-switch">
+                                <input asp-for="Input.IsActive" class="form-check-input" type="checkbox">
+                                <label asp-for="Input.IsActive" class="form-check-label">Hoạt động</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Password Section -->
+            <div class="admin-card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-lock me-2"></i>Thay đổi mật khẩu</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>Chỉ điền vào nếu bạn muốn thay đổi mật khẩu. Để trống nếu không muốn thay đổi.
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Input.NewPassword" class="form-label fw-bold">Mật khẩu mới</label>
+                            <div class="input-group">
+                                <input asp-for="Input.NewPassword" class="form-control" type="password" placeholder="Nhập mật khẩu mới...">
+                                <button type="button" class="btn btn-outline-secondary" id="togglePassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Input.NewPassword" class="text-danger"></span>
+                            <div class="form-text">Mật khẩu phải có ít nhất 6 ký tự</div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Input.ConfirmNewPassword" class="form-label fw-bold">Xác nhận mật khẩu mới</label>
+                            <div class="input-group">
+                                <input asp-for="Input.ConfirmNewPassword" class="form-control" type="password" placeholder="Nhập lại mật khẩu mới...">
+                                <button type="button" class="btn btn-outline-secondary" id="toggleConfirmPassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Input.ConfirmNewPassword" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Roles Section -->
+            <div class="admin-card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-users-cog me-2"></i>Quyền hạn</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.AvailableRoles.Any())
+                    {
+                        <div class="row">
+                            @foreach (var role in Model.AvailableRoles)
+                            {
+                                <div class="col-md-6 mb-2">
+                                    <div class="form-check">
+                                        <input type="checkbox" name="Input.SelectedRoleIds" value="@role.RoleId" 
+                                               class="form-check-input" id="role_@role.RoleId"
+                                               @(Model.Input.SelectedRoleIds.Contains(role.RoleId) ? "checked" : "")>
+                                        <label class="form-check-label" for="role_@role.RoleId">
+                                            <span class="badge @(role.RoleName == "Admin" ? "bg-danger" : "bg-success") me-2">
+                                                @role.RoleName
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">Không có vai trò nào được tìm thấy.</p>
+                    }
+                </div>
+            </div>
+            
+            <!-- Submit Buttons -->
+            <div class="admin-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <a asp-page="Index" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>Hủy
+                        </a>
+                        <button type="submit" class="btn btn-admin-primary">
+                            <i class="fas fa-save me-2"></i>Cập nhật
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Preview Section -->
+    <div class="col-lg-4">
+        <div class="admin-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-eye me-2"></i>Xem trước</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" 
+                     style="width: 80px; height: 80px;">
+                    <i class="fas fa-user text-white fa-2x"></i>
+                </div>
+                
+                <h5 id="previewUsername" class="text-muted">@Model.Input.Username</h5>
+                <p id="previewFullName" class="text-muted mb-2">@Model.Input.FullName</p>
+                <p id="previewEmail" class="text-muted small mb-3">@Model.Input.Email</p>
+                
+                <div id="previewStatus" class="mb-3">
+                    @if (Model.Input.IsActive)
+                    {
+                        <span class="badge bg-success">Hoạt động</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Không hoạt động</span>
+                    }
+                </div>
+                
+                <div id="previewRoles">
+                    @if (Model.Input.SelectedRoleIds.Any())
+                    {
+                        @foreach (var roleId in Model.Input.SelectedRoleIds)
+                        {
+                            var role = Model.AvailableRoles.FirstOrDefault(r => r.RoleId == roleId);
+                            if (role != null)
+                            {
+                                <span class="badge @(role.RoleName == "Admin" ? "bg-danger" : "bg-success") me-1">
+                                    @role.RoleName
+                                </span>
+                            }
+                        }
+                    }
+                    else
+                    {
+                        <small class="text-muted">Chưa chọn vai trò</small>
+                    }
+                </div>
+            </div>
+        </div>
+        
+        <!-- User Stats -->
+        <div class="admin-card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Thống kê</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <h6 class="text-primary mb-0">@Model.User.Books.Count</h6>
+                        <small class="text-muted">Sách</small>
+                    </div>
+                    <div class="col-4">
+                        <h6 class="text-warning mb-0">@Model.User.Reviews.Count</h6>
+                        <small class="text-muted">Đánh giá</small>
+                    </div>
+                    <div class="col-4">
+                        <h6 class="text-success mb-0">@Model.User.FavoriteBooks.Count</h6>
+                        <small class="text-muted">Yêu thích</small>
+                    </div>
+                </div>
+                
+                @if (Model.User.CreatedAt.HasValue)
+                {
+                    <hr>
+                    <small class="text-muted">
+                        <i class="fas fa-calendar me-1"></i>
+                        Tham gia: @Model.User.CreatedAt.Value.ToString("dd/MM/yyyy")
+                    </small>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script type="text/javascript">
+        $(document).ready(function() {
+            function updatePreview() {
+                var username = $('#Input_Username').val() || 'Tên đăng nhập';
+                var fullName = $('#Input_FullName').val() || 'Họ tên';
+                var email = $('#Input_Email').val() || 'Email';
+                var isActive = $('#Input_IsActive').is(':checked');
+                
+                $('#previewUsername').text(username);
+                $('#previewFullName').text(fullName);
+                $('#previewEmail').text(email);
+                
+                if (isActive) {
+                    $('#previewStatus').html('<span class="badge bg-success">Hoạt động</span>');
+                } else {
+                    $('#previewStatus').html('<span class="badge bg-secondary">Không hoạt động</span>');
+                }
+                
+                var selectedRoles = [];
+                $('input[name="Input.SelectedRoleIds"]:checked').each(function() {
+                    var roleLabel = $(this).next('label').find('.badge').text();
+                    var roleClass = $(this).next('label').find('.badge').attr('class');
+                    selectedRoles.push('<span class="' + roleClass + ' me-1">' + roleLabel + '</span>');
+                });
+                
+                if (selectedRoles.length > 0) {
+                    $('#previewRoles').html(selectedRoles.join(''));
+                } else {
+                    $('#previewRoles').html('<small class="text-muted">Chưa chọn vai trò</small>');
+                }
+            }
+            
+            $('#Input_Username, #Input_FullName, #Input_Email, #Input_IsActive').on('input change', updatePreview);
+            $('input[name="Input.SelectedRoleIds"]').on('change', updatePreview);
+            
+            $('#togglePassword').click(function() {
+                var passwordField = $('#Input_NewPassword');
+                var icon = $(this).find('i');
+                
+                if (passwordField.attr('type') === 'password') {
+                    passwordField.attr('type', 'text');
+                    icon.removeClass('fa-eye').addClass('fa-eye-slash');
+                } else {
+                    passwordField.attr('type', 'password');
+                    icon.removeClass('fa-eye-slash').addClass('fa-eye');
+                }
+            });
+            
+            $('#toggleConfirmPassword').click(function() {
+                var passwordField = $('#Input_ConfirmNewPassword');
+                var icon = $(this).find('i');
+                
+                if (passwordField.attr('type') === 'password') {
+                    passwordField.attr('type', 'text');
+                    icon.removeClass('fa-eye').addClass('fa-eye-slash');
+                } else {
+                    passwordField.attr('type', 'password');
+                    icon.removeClass('fa-eye-slash').addClass('fa-eye');
+                }
+            });
+            
+            var usernameTimeout;
+            $('#Input_Username').on('input', function() {
+                var username = $(this).val();
+                var userId = $('#Input_UserId').val();
+                clearTimeout(usernameTimeout);
+                
+                if (username.length >= 3) {
+                    usernameTimeout = setTimeout(function() {
+                        $.get('/Admin/Users/Edit?handler=CheckUsername', { username: username, userId: userId })
+                            .done(function(data) {
+                                if (data.available) {
+                                    $('#usernameValidation').html('<span class="text-success"><i class="fas fa-check me-1"></i>Tên đăng nhập khả dụng</span>');
+                                } else {
+                                    $('#usernameValidation').html('<span class="text-danger"><i class="fas fa-times me-1"></i>Tên đăng nhập đã tồn tại</span>');
+                                }
+                            });
+                    }, 500);
+                } else {
+                    $('#usernameValidation').empty();
+                }
+            });
+            
+            var emailTimeout;
+            $('#Input_Email').on('input', function() {
+                var email = $(this).val();
+                var userId = $('#Input_UserId').val();
+                clearTimeout(emailTimeout);
+                
+                if (email.length > 0 && email.indexOf('@@') > -1) {
+                    emailTimeout = setTimeout(function() {
+                        $.get('/Admin/Users/Edit?handler=CheckEmail', { email: email, userId: userId })
+                            .done(function(data) {
+                                if (data.available) {
+                                    $('#emailValidation').html('<span class="text-success"><i class="fas fa-check me-1"></i>Email khả dụng</span>');
+                                } else {
+                                    $('#emailValidation').html('<span class="text-danger"><i class="fas fa-times me-1"></i>Email đã được sử dụng</span>');
+                                }
+                            });
+                    }, 500);
+                } else {
+                    $('#emailValidation').empty();
+                }
+            });
+        });
+    </script>
+}
