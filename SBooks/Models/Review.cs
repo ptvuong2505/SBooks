@@ -13,7 +13,7 @@ public partial class Review
 
     public long? ParentReviewId { get; set; }
 
-    public string CommentText { get; set; } = null!;
+    public string? CommentText { get; set; }
 
     public int? LikeCount { get; set; }
 
@@ -22,6 +22,8 @@ public partial class Review
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
+
+    public short? Rating { get; set; }
 
     public virtual Book Book { get; set; } = null!;
 

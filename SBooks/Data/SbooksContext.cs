@@ -197,6 +197,10 @@ public partial class SbooksContext : DbContext
 
             entity.HasIndex(e => e.UserId, "idx_reviews_user_id");
 
+            entity.HasIndex(e => new { e.BookId, e.UserId }, "unique_main_review_per_user_per_book")
+                .IsUnique()
+                .HasFilter("(parent_review_id IS NULL)");
+
             entity.Property(e => e.ReviewId).HasColumnName("review_id");
             entity.Property(e => e.BookId).HasColumnName("book_id");
             entity.Property(e => e.CommentText).HasColumnName("comment_text");
@@ -210,6 +214,7 @@ public partial class SbooksContext : DbContext
                 .HasDefaultValue(0)
                 .HasColumnName("like_count");
             entity.Property(e => e.ParentReviewId).HasColumnName("parent_review_id");
+            entity.Property(e => e.Rating).HasColumnName("rating");
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("updated_at");
