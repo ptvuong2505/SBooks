@@ -489,3 +489,53 @@ footer {
 .loading {
   animation: pulse 2s infinite;
 }
+
+/* ===== Additional styles for book cards ===== */
+.book-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.book-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.book-title {
+  flex: 0 0 auto;
+}
+
+.book-stats {
+  margin-top: auto;
+}
+
+/* Responsive book grid */
+@media (max-width: 576px) {
+  .book-card {
+    margin-bottom: 1rem;
+  }
+
+  .book-image {
+    height: 200px;
+  }
+}
+
+/* Search suggestions styling */
+.search-suggestions {
+  border: 1px solid #ddd !important;
+  border-radius: 0 0 8px 8px !important;
+}
+
+/* Star rating interactive */
+.star-rating label {
+  transition: all 0.2s ease;
+}
+
+.star-rating input:checked ~ label,
+.star-rating label:hover,
+.star-rating label:hover ~ label {
+  color: #ffc107 !important;
+  transform: scale(1.1);
+}

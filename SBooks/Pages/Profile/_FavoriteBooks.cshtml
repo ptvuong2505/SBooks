@@ -1,0 +1,67 @@
+@model List<SBooks.Models.DTOs.BookCardDto>
+
+<div class="row">
+    @foreach (var book in Model)
+    {
+        <div class="col-md-4 mb-4" data-book-id="@book.BookId">
+            <div class="card h-100">
+                <div class="position-relative">
+                    @if (!string.IsNullOrEmpty(book.UrlImage))
+                    {
+                        <img src="@book.UrlImage" class="card-img-top" alt="@book.Title"
+                            style="height: 200px; object-fit: cover;">
+                    }
+                    else
+                    {
+                        <div class="card-img-top d-flex align-items-center justify-content-center bg-light"
+                            style="height: 200px;">
+                            <i class="fas fa-book fa-3x text-muted"></i>
+                        </div>
+                    }
+                    <button class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2"
+                        onclick="removeFavorite(@book.BookId)" title="Xóa khỏi yêu thích">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <h6 class="card-title">
+                        <a href="/Books/Details/@book.BookId" class="text-decoration-none">
+                            @book.Title
+                        </a>
+                    </h6>
+                    <p class="text-muted small mb-1">@book.AuthorName</p>
+
+                    @if (book.AverageRating > 0)
+                    {
+                        <div class="mb-2">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <i class="fas fa-star @(i <= book.AverageRating ? "text-warning" : "text-muted") small"></i>
+                            }
+                            <span class="small text-muted ms-1">(@book.ReviewCount)</span>
+                        </div>
+                    }
+
+                    <div class="mt-auto">
+                        @if (book.Price.HasValue && book.Price > 0)
+                        {
+                            <p class="fw-bold text-primary mb-2">@book.Price.Value.ToString("C0")</p>
+                        }
+                        <small class="text-muted">
+                            Yêu thích từ @book.FavoriteDate?.ToString("dd/MM/yyyy")
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="text-center py-4">
+        <i class="fas fa-heart fa-3x text-muted mb-3"></i>
+        <p class="text-muted">Chưa có sách yêu thích nào</p>
+        <a href="/" class="btn btn-primary">Khám phá sách</a>
+    </div>
+}

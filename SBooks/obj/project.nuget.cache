@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "VL+DWLFmuVU=",
+  "dgSpecHash": "tCxUOU1y3XE=",
   "success": true,
-  "projectFilePath": "e:\\FsoftProject\\SBooks\\SBooks.csproj",
+  "projectFilePath": "E:\\FsoftProject\\SBooks\\SBooks.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\ADMIN\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
     "C:\\Users\\ADMIN\\.nuget\\packages\\closedxml\\0.105.0\\closedxml.0.105.0.nupkg.sha512",

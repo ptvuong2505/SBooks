@@ -1,0 +1,282 @@
+@page
+@model SBooks.Pages.Favorites.IndexModel
+@{
+    ViewData["Title"] = "Sách yêu thích";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-heart text-danger me-2"></i>Sách yêu thích của tôi
+                </h2>
+                <div class="text-muted">
+                    @if (Model.FavoriteBooks.Any())
+                    {
+                        <span>Hiển thị @Model.FavoriteBooks.Count sách</span>
+                    }
+                </div>
+            </div>
+
+            @if (Model.FavoriteBooks.Any())
+            {
+                <div class="row">
+                    @foreach (var book in Model.FavoriteBooks)
+                    {
+                        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 mb-4" data-book-id="@book.BookId">
+                            <div class="card h-100 book-card">
+                                <div class="position-relative">
+                                    @if (!string.IsNullOrEmpty(book.UrlImage))
+                                    {
+                                        <img src="@book.UrlImage" class="card-img-top book-image" alt="@book.Title">
+                                    }
+                                    else
+                                    {
+                                        <div class="card-img-top d-flex align-items-center justify-content-center bg-light book-image">
+                                            <i class="fas fa-book fa-3x text-muted"></i>
+                                        </div>
+                                    }
+                                    
+                                    <!-- Remove favorite button -->
+                                    <button class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2 remove-favorite-btn" 
+                                            onclick="removeFavorite(@book.BookId)" 
+                                            title="Xóa khỏi yêu thích"
+                                            data-bs-toggle="tooltip">
+                                        <i class="fas fa-heart-broken"></i>
+                                    </button>
+
+                                    <!-- Rating overlay -->
+                                    @if (book.AverageRating > 0)
+                                    {
+                                        <div class="position-absolute top-0 start-0 m-2">
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="fas fa-star"></i> @book.AverageRating.ToString("0.1")
+                                            </span>
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="card-body d-flex flex-column">
+                                    <h6 class="card-title book-title">
+                                        <a href="/Books/Details/@book.BookId" class="text-decoration-none text-dark">
+                                            @book.Title
+                                        </a>
+                                    </h6>
+                                    
+                                    <p class="text-muted small mb-2">
+                                        <i class="fas fa-user me-1"></i>@book.AuthorName
+                                    </p>
+
+                                    @if (!string.IsNullOrEmpty(book.Genre))
+                                    {
+                                        <p class="text-muted small mb-2">
+                                            <i class="fas fa-tag me-1"></i>@book.Genre
+                                        </p>
+                                    }
+
+                                    @if (book.AverageRating > 0)
+                                    {
+                                        <div class="mb-2">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <i class="fas fa-star @(i <= book.AverageRating ? "text-warning" : "text-muted") small"></i>
+                                            }
+                                            <span class="small text-muted ms-1">(@book.ReviewCount)</span>
+                                        </div>
+                                    }
+
+                                    <div class="mt-auto">
+                                        @if (book.Price.HasValue && book.Price > 0)
+                                        {
+                                            <div class="text-primary fw-bold mb-2">
+                                                @book.Price.Value.ToString("C0")
+                                            </div>
+                                        }
+                                        
+                                        <small class="text-muted d-block">
+                                            <i class="fas fa-eye me-1"></i>@book.ViewCount lượt xem
+                                        </small>
+                                        
+                                        @if (book.FavoriteDate.HasValue)
+                                        {
+                                            <small class="text-muted d-block">
+                                                <i class="fas fa-calendar me-1"></i>Yêu thích từ @book.FavoriteDate.Value.ToString("dd/MM/yyyy")
+                                            </small>
+                                        }
+
+                                        <div class="mt-2">
+                                            <a href="/Books/Details/@book.BookId" class="btn btn-outline-primary btn-sm w-100">
+                                                <i class="fas fa-eye me-1"></i>Xem chi tiết
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Pagination -->
+                @if (Model.PageNumber > 1 || Model.FavoriteBooks.Count >= Model.PageSize)
+                {
+                    <div class="d-flex justify-content-center mt-4">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination">
+                                @if (Model.PageNumber > 1)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="?PageNumber=@(Model.PageNumber - 1)">
+                                            <i class="fas fa-chevron-left"></i> Trước
+                                        </a>
+                                    </li>
+                                }
+                                
+                                @for (int i = Math.Max(1, Model.PageNumber - 2); i <= Math.Min(Model.PageNumber + 2, Model.PageNumber + 1); i++)
+                                {
+                                    <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                        <a class="page-link" href="?PageNumber=@i">@i</a>
+                                    </li>
+                                }
+                                
+                                @if (Model.FavoriteBooks.Count >= Model.PageSize)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="?PageNumber=@(Model.PageNumber + 1)">
+                                            Sau <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                        </nav>
+                    </div>
+                }
+            }
+            else
+            {
+                <!-- Empty state -->
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-heart fa-5x text-muted"></i>
+                    </div>
+                    <h3 class="text-muted mb-3">Chưa có sách yêu thích</h3>
+                    <p class="text-muted mb-4">
+                        Hãy khám phá và thêm những cuốn sách bạn yêu thích vào danh sách này
+                    </p>
+                    <a href="/" class="btn btn-primary btn-lg">
+                        <i class="fas fa-search me-2"></i>Khám phá sách
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function removeFavorite(bookId) {
+            if (confirm('Bạn có chắc muốn xóa sách này khỏi danh sách yêu thích?')) {
+                $.post('/Favorites?handler=RemoveFavorite', { 
+                    bookId: bookId,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                })
+                .done(function(response) {
+                    if (response.success) {
+                        // Fade out và remove card
+                        $(`[data-book-id="${bookId}"]`).fadeOut(300, function() {
+                            $(this).remove();
+                            
+                            // Check if no more books
+                            if ($('[data-book-id]').length === 0) {
+                                location.reload(); // Reload to show empty state
+                            }
+                        });
+                        
+                        showAlert('success', response.message);
+                    } else {
+                        showAlert('danger', response.message);
+                    }
+                })
+                .fail(function() {
+                    showAlert('danger', 'Có lỗi xảy ra khi xóa sách');
+                });
+            }
+        }
+
+        function showAlert(type, message) {
+            const alert = `<div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>`;
+            $('.container').prepend(alert);
+            
+            // Auto hide after 3 seconds
+            setTimeout(function() {
+                $('.alert').fadeOut();
+            }, 3000);
+        }
+
+        // Initialize tooltips
+        $(document).ready(function() {
+            $('[data-bs-toggle="tooltip"]').tooltip();
+        });
+    </script>
+}
+
+@section Styles {
+    <style>
+        .book-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #e0e0e0;
+        }
+
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .book-image {
+            height: 250px;
+            object-fit: cover;
+        }
+
+        .book-title {
+            font-size: 0.95rem;
+            line-height: 1.3;
+            height: 2.6rem;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .book-title a:hover {
+            color: #007bff !important;
+        }
+
+        .remove-favorite-btn {
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .remove-favorite-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .pagination .page-link {
+            color: #007bff;
+            border-color: #dee2e6;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+
+        .pagination .page-link:hover {
+            color: #0056b3;
+            background-color: #e9ecef;
+        }
+    </style>
+}

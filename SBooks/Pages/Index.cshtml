@@ -1,10 +1,1186 @@
-﻿@page
+@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Trang chủ";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@section Styles {
+    <style>
+        .search-container {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
+            z-index: 1000;
+        }
+
+        .search-suggestions {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            z-index: 1001;
+            max-height: 400px;
+            overflow-y: auto;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+        }
+
+        .suggestion-item {
+            text-align: left;
+            margin-left: 10px;
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .suggestion-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-image {
+            width: 40px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-size: 12px;
+        }
+
+        .suggestion-content h6 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: black;
+        }
+
+        .suggestion-content small {
+            color: #666;
+        }
+
+        .book-card {
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            height: 420px;
+            background: white;
+            margin-bottom: 20px;
+        }
+
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .book-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .book-image-small {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-size: 12px;
+        }
+
+        .book-info {
+            padding: 12px;
+            height: 220px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .book-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            line-height: 1.3;
+            height: 36px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .book-author {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .book-rating {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .stars {
+            color: #ffc107;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .rating-value {
+            font-weight: 600;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .book-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            font-size: 12px;
+        }
+
+        .book-price {
+            font-weight: 600;
+            color: #dc3545;
+            font-size: 16px;
+        }
+
+        .filter-section {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e9ecef;
+            position: relative;
+            overflow: visible;
+            z-index: 1;
+        }
+
+        .container {
+            overflow: visible;
+        }
+
+        .container-fluid {
+            overflow: visible;
+        }
+
+        .filter-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .filter-header h5 {
+            margin: 0;
+            font-weight: 700;
+            color: #2c3e50;
+            font-size: 18px;
+        }
+
+        .filter-header .fas {
+            color: #667eea;
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        .filter-toolbar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            align-items: start;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-dropdown {
+            position: relative;
+        }
+
+        .filter-btn {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            padding: 14px 18px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            color: #495057;
+            min-height: 50px;
+        }
+
+        .filter-btn:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            color: white;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .filter-btn-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-btn-icon {
+            font-size: 16px;
+        }
+
+        .filter-btn-text {
+            font-weight: 500;
+        }
+
+        .filter-btn-badge {
+            background: rgba(255, 255, 255, 0.9);
+            color: #667eea;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .filter-btn.active .filter-btn-badge {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        .filter-chevron {
+            transition: transform 0.3s ease;
+            font-size: 14px;
+        }
+
+        .filter-btn.active .filter-chevron {
+            transform: rotate(180deg);
+        }
+
+        .filter-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+            max-height: 350px;
+            overflow-y: auto;
+            display: none;
+            margin-top: 8px;
+        }
+
+        .filter-dropdown-menu.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @@keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .filter-dropdown-header {
+            padding: 16px 20px;
+            border-bottom: 2px solid #f0f0f0;
+            font-weight: 700;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px 15px 0 0;
+            color: #495057;
+        }
+
+        .filter-dropdown-item {
+            padding: 14px 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .filter-dropdown-item:hover {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding-left: 25px;
+        }
+
+        .filter-dropdown-item:last-child {
+            border-bottom: none;
+            border-radius: 0 0 15px 15px;
+        }
+
+        .filter-dropdown-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #667eea;
+            cursor: pointer;
+        }
+
+        .filter-dropdown-item label {
+            cursor: pointer;
+            font-weight: 500;
+            color: #495057;
+            margin: 0;
+            flex: 1;
+        }
+
+        .clear-filters-btn {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            border: 2px solid #dc3545;
+            color: white;
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 50px;
+            width: 100%;
+        }
+
+        .clear-filters-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+            color: white;
+        }
+
+        .filter-dropdown-item:last-child {
+            border-bottom: none;
+            border-radius: 0 0 15px 15px;
+        }
+
+        .filter-dropdown-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #667eea;
+            cursor: pointer;
+        }
+
+        .filter-dropdown-item label {
+            cursor: pointer;
+            font-weight: 500;
+            color: #495057;
+            margin: 0;
+            flex: 1;
+        }
+
+        .filter-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            margin: 3px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .filter-badge:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .filter-badge .remove {
+            cursor: pointer;
+            opacity: 0.8;
+            font-weight: bold;
+            transition: opacity 0.2s ease;
+        }
+
+        .filter-badge .remove:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .selected-filters {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+        }
+
+        .selected-filters h6 {
+            margin-bottom: 15px;
+            color: #495057;
+            font-weight: 700;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .no-results {
+            text-align: center;
+            margin: 40px 0;
+            color: #666;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            color: white;
+            padding: 60px 0;
+            margin-bottom: 40px;
+            z-index: 10000;
+        }
+
+        .hero-content h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .hero-content p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        /* Responsive styles */
+        @@media (max-width: 768px) {
+            .filter-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 15px;
+            }
+
+            .filter-dropdown {
+                width: 100%;
+            }
+
+            .filter-btn {
+                justify-content: space-between;
+                width: 100%;
+                text-align: left;
+            }
+
+            .filter-dropdown-menu {
+                min-width: 100%;
+                left: 0;
+                right: 0;
+            }
+
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+
+            .filter-section {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+
+            .selected-filters {
+                padding: 15px;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .filter-badge {
+                margin: 2px;
+                padding: 4px 8px;
+                font-size: 12px;
+            }
+
+            .book-card {
+                height: auto;
+                min-height: 350px;
+            }
+        }
+    </style>
+}
+
+<!-- Hero Section -->
+<div class="hero-section" style="border-radius: 8px;">
+    <div class="container-fluid">
+        <div class="row justify-content-center ">
+            <div class="col-lg-8 text-center">
+                <div class="hero-content ">
+                    <h1>Khám phá thế giới sách</h1>
+                    <p>Tìm kiếm, đánh giá và chia sẻ những cuốn sách yêu thích của bạn</p>
+
+                    <!-- Search Bar -->
+                    <div class="search-container">
+                        <div class="input-group input-group-lg">
+                            <input type="text" id="searchInput" class="form-control"
+                                placeholder="Tìm kiếm sách, tác giả..." value="@Model.SearchQuery" autocomplete="off">
+                            <button class="btn btn-light" type="button" id="searchBtn">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <div id="searchSuggestions" class="search-suggestions gap-2" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<div class="container px-3">
+    <!-- Filters -->
+    <div class="filter-section">
+        <div class="filter-header">
+            <i class="fas fa-filter"></i>
+            <h5>Bộ lọc tìm kiếm</h5>
+        </div>
+
+        <form id="filterForm" method="get">
+            <input type="hidden" name="SearchQuery" value="@Model.SearchQuery" />
+            <input type="hidden" name="CurrentPage" value="1" />
+
+            <!-- Hidden inputs for selected filters -->
+            @foreach (var authorId in Model.AuthorIds)
+            {
+                <input type="hidden" name="AuthorIds" value="@authorId" class="selected-author">
+            }
+            @foreach (var genre in Model.SelectedGenres)
+            {
+                <input type="hidden" name="SelectedGenres" value="@genre" class="selected-genre">
+            }
+
+            <!-- Filter Toolbar -->
+            <div class="filter-toolbar">
+                <!-- Sort -->
+                <div class="filter-group">
+                    <div class="filter-label">
+                        <i class="fas fa-sort"></i>
+                        Sắp xếp
+                    </div>
+                    <select name="SortBy" class="form-select filter-btn" id="sortSelect">
+                        <option value="newest" selected="@(Model.SortBy == "newest")">📅 Mới nhất</option>
+                        <option value="oldest" selected="@(Model.SortBy == "oldest")">📅 Cũ nhất</option>
+                        <option value="title" selected="@(Model.SortBy == "title")">🔤 Tên sách A-Z</option>
+                        <option value="rating" selected="@(Model.SortBy == "rating")">⭐ Đánh giá cao</option>
+                        <option value="favorites" selected="@(Model.SortBy == "favorites")">❤️ Yêu thích nhiều
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Authors Filter -->
+                <div class="filter-group">
+                    <div class="filter-label">
+                        <i class="fas fa-user-edit"></i>
+                        Tác giả
+                    </div>
+                    <div class="filter-dropdown">
+                        <button type="button" class="filter-btn @(Model.AuthorIds.Any() ? "active" : "")"
+                            id="authorsFilterBtn">
+                            <div class="filter-btn-content">
+                                <i class="fas fa-user-edit filter-btn-icon"></i>
+                                <span class="filter-btn-text">Chọn tác giả</span>
+                                @if (Model.AuthorIds.Any())
+                                {
+                                    <span class="filter-btn-badge">@Model.AuthorIds.Count</span>
+                                }
+                            </div>
+                            <i class="fas fa-chevron-down filter-chevron"></i>
+                        </button>
+                        <div class="filter-dropdown-menu" id="authorsDropdown">
+                            <div class="filter-dropdown-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>Chọn tác giả</span>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="clearAuthors">Xóa
+                                        tất cả</button>
+                                </div>
+                            </div>
+                            @foreach (var author in Model.Authors)
+                            {
+                                <div class="filter-dropdown-item" data-author-id="@author.AuthorId"
+                                    data-author-name="@author.AuthorName">
+                                    <input type="checkbox" id="author_@author.AuthorId"
+                                        @(Model.AuthorIds.Contains(author.AuthorId) ? "checked" : "")>
+                                    <label for="author_@author.AuthorId">@author.AuthorName</label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Genres Filter -->
+                <div class="filter-group">
+                    <div class="filter-label">
+                        <i class="fas fa-tags"></i>
+                        Thể loại
+                    </div>
+                    <div class="filter-dropdown">
+                        <button type="button" class="filter-btn @(Model.SelectedGenres.Any() ? "active" : "")"
+                            id="genresFilterBtn">
+                            <div class="filter-btn-content">
+                                <i class="fas fa-tags filter-btn-icon"></i>
+                                <span class="filter-btn-text">Chọn thể loại</span>
+                                @if (Model.SelectedGenres.Any())
+                                {
+                                    <span class="filter-btn-badge">@Model.SelectedGenres.Count</span>
+                                }
+                            </div>
+                            <i class="fas fa-chevron-down filter-chevron"></i>
+                        </button>
+                        <div class="filter-dropdown-menu" id="genresDropdown">
+                            <div class="filter-dropdown-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>Chọn thể loại</span>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="clearGenres">Xóa
+                                        tất cả</button>
+                                </div>
+                            </div>
+                            @foreach (var genre in Model.Genres)
+                            {
+                                <div class="filter-dropdown-item" data-genre="@genre">
+                                    <input type="checkbox" id="genre_@genre.Replace(" ", "_")"
+                                        @(Model.SelectedGenres.Contains(genre) ? "checked" : "")>
+                                    <label for="genre_@genre.Replace(" ", "_")">@genre</label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Clear All Filters -->
+                <div class="filter-group">
+                    <div class="filter-label" style="visibility: hidden;">Hành động</div>
+                    <button type="button" class="clear-filters-btn" id="clearAllFilters">
+                        <i class="fas fa-eraser"></i>
+                        <span>Xóa tất cả</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Selected Filters Display -->
+            <div class="selected-filters" id="selectedFilters" style="display: none;">
+                <h6 class="mb-2">Bộ lọc đã chọn:</h6>
+                <div id="filterBadges"></div>
+            </div>
+
+        </form> <!-- Make sure this closing tag exists -->
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Đang tải...</span>
+        </div>
+        <p class="mt-2">Đang tải sách...</p>
+    </div>
+
+    <!-- Books Grid -->
+    <div id="booksContainer">
+        @await Html.PartialAsync("_BookGrid", Model.Books)
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            let searchTimeout;
+            let isSearching = false;
+            let isNavigating = false;
+            let suggestionClicked = false; // ✅ Thêm flag để track suggestion clicks
+
+            console.log('Document ready - script loaded');
+
+            // Initialize filters display
+            updateFilterDisplay();
+
+            // Search suggestions
+            $('#searchInput').on('input', function () {
+                const query = $(this).val().trim();
+
+                clearTimeout(searchTimeout);
+
+                if (isNavigating || query.length < 2) {
+                    $('#searchSuggestions').hide();
+                    return;
+                }
+                searchTimeout = setTimeout(function () {
+                    if (!isNavigating && !suggestionClicked) { // Chỉ load nếu không đang navigate hoặc vừa click suggestion
+                        loadSearchSuggestions(query);
+                    }
+                }, 300);
+            });
+
+            // Search button click
+            $('#searchBtn').click(function () {
+                console.log('Search button clicked');
+                performSearch();
+            });
+
+            // Enter key in search
+            $('#searchInput').keypress(function (e) {
+                if (e.which === 13) {
+                    console.log('Enter key pressed');
+                    e.preventDefault();
+                    performSearch();
+                }
+            });
+
+            // ✅ Prevent click event để tránh double handling
+            $(document).on('mousedown', '.suggestion-item', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+
+                isNavigating = true;
+                suggestionClicked = true;
+
+
+                const bookId = $(this).data('book-id');
+                console.log('Suggestion click, bookId:', bookId);
+
+                if (!bookId) {
+                    console.error('No bookId found');
+                    // ✅ Reset flags nếu có lỗi
+                    suggestionClicked = false;
+                    isNavigating = false;
+                    return;
+                }
+
+                clearTimeout(searchTimeout);
+                $('#searchSuggestions').hide();
+
+                console.log("Navigating to book details");
+                window.location.href = `/Books/Details/${bookId}`;
+            });
+
+            // ✅ Prevent click event để tránh double handling
+            $(document).on('click', '.suggestion-item', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                // Không làm gì vì mousedown đã handle
+            });
+
+
+
+            // ✅ Click outside - reset flags sau delay
+            $(document).click(function (e) {
+                // ✅ Skip nếu suggestion đã được clicked
+                if (suggestionClicked || isNavigating) {
+                    console.log('Skip document click - suggestion clicked or navigating');
+                    return;
+                }
+
+                if (!$(e.target).closest('.search-container').length &&
+                    !$(e.target).closest('#searchSuggestions').length &&
+                    !$(e.target).closest('.suggestion-item').length) {
+
+                    console.log("Document click - hiding suggestions. Input value:", $('#searchInput').val());
+                    $('#searchSuggestions').hide();
+                }
+
+                if (!$(e.target).closest('.filter-dropdown').length) {
+                    $('.filter-dropdown-menu.show').removeClass('show').hide();
+                }
+            });
+
+            // ✅ Modified blur event
+            $('#searchInput').on('blur', function (e) {
+                console.log('Input blur event');
+                // ✅ Không hide nếu đang có action
+                if (isNavigating || suggestionClicked) {
+                    console.log('Skip blur hide - action in progress');
+                    return;
+                }
+
+                setTimeout(function () {
+                    if (!isNavigating && !suggestionClicked
+                        && !$('.suggestion-item:hover').length) {
+                        $('#searchSuggestions').hide();
+                    }
+                }, 200);
+            });
+
+            // ✅ Reset flag khi focus input (để có thể search lại)
+            $('#searchInput').on('focus', function () {
+                // Chỉ reset nếu không đang trong quá trình navigate
+                if (!isNavigating) {
+                    suggestionClicked = false;
+                }
+            });
+
+            // Dropdown toggles
+            $('#authorsFilterBtn').click(function (e) {
+                console.log('Authors button clicked');
+                e.preventDefault();
+                e.stopPropagation();
+
+                const dropdown = $('#authorsDropdown');
+                const isVisible = dropdown.hasClass('show');
+
+                // Close other dropdown
+                $('#genresDropdown').removeClass('show').hide();
+
+                // Toggle current dropdown
+                if (isVisible) {
+                    dropdown.removeClass('show').hide();
+                } else {
+                    dropdown.addClass('show').show();
+                }
+            });
+
+            $('#genresFilterBtn').click(function (e) {
+                console.log('Genres button clicked');
+                e.preventDefault();
+                e.stopPropagation();
+
+                const dropdown = $('#genresDropdown');
+                const isVisible = dropdown.hasClass('show');
+
+                // Close other dropdown
+                $('#authorsDropdown').removeClass('show').hide();
+
+                // Toggle current dropdown
+                if (isVisible) {
+                    dropdown.removeClass('show').hide();
+                } else {
+                    dropdown.addClass('show').show();
+                }
+            });
+
+            // Author selection
+            $(document).on('click', '#authorsDropdown .filter-dropdown-item', function (e) {
+                e.stopPropagation();
+                const checkbox = $(this).find('input[type="checkbox"]');
+                checkbox.prop('checked', !checkbox.prop('checked'));
+                updateAuthorSelection();
+            });
+
+            // Genre selection
+            $(document).on('click', '#genresDropdown .filter-dropdown-item', function (e) {
+                e.stopPropagation();
+                const checkbox = $(this).find('input[type="checkbox"]');
+                checkbox.prop('checked', !checkbox.prop('checked'));
+                updateGenreSelection();
+            });
+
+            // Clear individual filters
+            $('#clearAuthors').click(function (e) {
+                e.stopPropagation();
+                $('#authorsDropdown input[type="checkbox"]').prop('checked', false);
+                updateAuthorSelection();
+            });
+
+            $('#clearGenres').click(function (e) {
+                e.stopPropagation();
+                $('#genresDropdown input[type="checkbox"]').prop('checked', false);
+                updateGenreSelection();
+            });
+
+            // Clear all filters
+            $('#clearAllFilters').click(function () {
+                $('#filterForm')[0].reset();
+                $('input[name="SearchQuery"]').val('');
+                $('#searchInput').val('');
+                $('.selected-author, .selected-genre').remove();
+                $('#authorsDropdown input[type="checkbox"], #genresDropdown input[type="checkbox"]').prop('checked', false);
+                $('#authorsFilterBtn, #genresFilterBtn').removeClass('active');
+                $('#authorsFilterBtn .filter-btn-badge, #genresFilterBtn .filter-btn-badge').remove();
+                updateFilterDisplay();
+                updateBooks();
+            });
+
+            // Sort change
+            $('#sortSelect').change(function () {
+                updateBooks();
+            });
+
+            // Pagination clicks
+            $(document).on('click', '.page-link[data-page]', function (e) {
+                e.preventDefault();
+                const page = $(this).data('page');
+                $('input[name="CurrentPage"]').val(page);
+                updateBooks();
+            });
+
+            // Remove individual filter badge
+            $(document).on('click', '.filter-badge .remove', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const type = $(this).data('type');
+                const value = $(this).data('value');
+
+                if (type === 'author') {
+                    $(`#authorsDropdown .filter-dropdown-item[data-author-id="${value}"] input[type="checkbox"]`).prop('checked', false);
+                    updateAuthorSelection();
+                } else if (type === 'genre') {
+                    $(`#genresDropdown .filter-dropdown-item[data-genre="${value}"] input[type="checkbox"]`).prop('checked', false);
+                    updateGenreSelection();
+                }
+            });
+
+            // Functions
+            function updateAuthorSelection() {
+                const selected = [];
+                $('#authorsDropdown input[type="checkbox"]:checked').each(function () {
+                    const item = $(this).closest('.filter-dropdown-item');
+                    selected.push({
+                        id: item.data('author-id'),
+                        name: item.data('author-name')
+                    });
+                });
+
+                // Update hidden inputs
+                $('.selected-author').remove();
+                selected.forEach(function (author) {
+                    $('#filterForm').append(`<input type="hidden" name="AuthorIds" value="${author.id}" class="selected-author">`);
+                });
+
+                // Update button
+                const btn = $('#authorsFilterBtn');
+                btn.find('.filter-btn-badge').remove();
+                if (selected.length > 0) {
+                    btn.addClass('active');
+                    btn.find('.filter-btn-content').append(`<span class="filter-btn-badge">${selected.length}</span>`);
+                } else {
+                    btn.removeClass('active');
+                }
+
+                updateFilterDisplay();
+                updateBooks();
+            }
+
+            function updateGenreSelection() {
+                const selected = [];
+                $('#genresDropdown input[type="checkbox"]:checked').each(function () {
+                    const item = $(this).closest('.filter-dropdown-item');
+                    selected.push(item.data('genre'));
+                });
+
+                // Update hidden inputs
+                $('.selected-genre').remove();
+                selected.forEach(function (genre) {
+                    $('#filterForm').append(`<input type="hidden" name="SelectedGenres" value="${genre}" class="selected-genre">`);
+                });
+
+                // Update button
+                const btn = $('#genresFilterBtn');
+                btn.find('.filter-btn-badge').remove();
+                if (selected.length > 0) {
+                    btn.addClass('active');
+                    btn.find('.filter-btn-content').append(`<span class="filter-btn-badge">${selected.length}</span>`);
+                } else {
+                    btn.removeClass('active');
+                }
+
+                updateFilterDisplay();
+                updateBooks();
+            }
+
+            function updateFilterDisplay() {
+                const selectedFilters = $('#selectedFilters');
+                const filterBadges = $('#filterBadges');
+                filterBadges.empty();
+
+                let hasFilters = false;
+
+                // Add author badges
+                $('#authorsDropdown input[type="checkbox"]:checked').each(function () {
+                    const item = $(this).closest('.filter-dropdown-item');
+                    const authorName = item.data('author-name');
+                    const authorId = item.data('author-id');
+
+                    filterBadges.append(`
+                                                                                                                                                            <span class="filter-badge">
+                                                                                                                                                                ${authorName}
+                                                                                                                                                                <i class="fas fa-times remove" data-type="author" data-value="${authorId}"></i>
+                                                                                                                                                            </span>
+                                                                                                                                                        `);
+                    hasFilters = true;
+                });
+
+                // Add genre badges
+                $('#genresDropdown input[type="checkbox"]:checked').each(function () {
+                    const item = $(this).closest('.filter-dropdown-item');
+                    const genre = item.data('genre');
+
+                    filterBadges.append(`
+                                                                                                                                                        <span class="filter-badge">
+                                                                                                                                                            ${genre}
+                                                                                                                                                            <i class="fas fa-times remove" data-type="genre" data-value="${genre}"></i>
+                                                                                                                                                        </span>
+                                                                                                                                                    `);
+                    hasFilters = true;
+                });
+
+                selectedFilters.toggle(hasFilters);
+            }
+
+            function loadSearchSuggestions(query) {
+                $.get('/Index', { handler: 'SearchSuggestions', query: query })
+                    .done(function (data) {
+                        console.log('Suggestions loaded:', data);
+                        displaySuggestions(data, query);
+                    })
+                    .fail(function (xhr, status, error) {
+                        console.error('Error loading suggestions:', error);
+                        $('#searchSuggestions').hide();
+                    });
+            }
+
+            function displaySuggestions(suggestions, query) {
+                const container = $('#searchSuggestions');
+                container.empty();
+
+                if (suggestions.length === 0) {
+                    container.hide();
+                    return;
+                }
+
+                suggestions.forEach(function (item) {
+                    const stars = generateStarRating(item.averageRating);
+
+                    const suggestionHtml = `
+                                                                                                                                                        <div class="suggestion-item" data-book-id="${item.bookId}" style="cursor: pointer; user-select: none;">
+                                                                                                                                                            <div class="suggestion-image">
+                                                                                                                                                                ${item.urlImage ?
+                            `<img src="${item.urlImage}" alt="${item.title}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\\'fas fa-book\\'></i>';">` :
+                            '<i class="fas fa-book"></i>'
+                        }
+                                                                                                                                                            </div>
+                                                                                                                                                            <div class="suggestion-content">
+                                                                                                                                                                <h6>${highlightMatch(item.title, query)}</h6>
+                                                                                                                                                                <small class="text-muted">${item.authorName || 'Không rõ tác giả'}</small>
+                                                                                                                                                                <div class="stars small">${stars}</div>
+                                                                                                                                                            </div>
+                                                                                                                                                        </div>
+                                                                                                                                                    `;
+                    container.append(suggestionHtml);
+                });
+
+                container.show();
+            }
+
+            function performSearch() {
+
+                const query = $('#searchInput').val().trim();
+                $('input[name="SearchQuery"]').val(query);
+                $('input[name="CurrentPage"]').val(1);
+                $('#searchSuggestions').hide();
+                $('#searchInput').blur();
+                clearTimeout(searchTimeout);
+                updateBooks();
+            }
+
+            function updateBooks() {
+                if (isSearching) return;
+
+                isSearching = true;
+                $('.loading-spinner').show();
+                $('#booksContainer').css('opacity', '0.5');
+
+                $.get('/Index', { handler: 'LoadBooks', ...getFormDataAsObject() })
+                    .done(function (data) {
+                        $('#booksContainer').html(data);
+                        $('html, body').animate({ scrollTop: $('#booksContainer').offset().top - 100 }, 500)
+                    })
+                    .fail(function () {
+                        $('#booksContainer').html('<div class="alert alert-danger">Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại.</div>');
+                    })
+                    .always(function () {
+                        $('.loading-spinner').hide();
+                        $('#booksContainer').css('opacity', '1');
+                        isSearching = false;
+                    });
+            }
+
+            function getFormDataAsObject() {
+                const formArray = $('#filterForm').serializeArray();
+                const formObject = {};
+
+                formArray.forEach(function (item) {
+                    if (formObject[item.name]) {
+                        if (Array.isArray(formObject[item.name])) {
+                            formObject[item.name].push(item.value);
+                        } else {
+                            formObject[item.name] = [formObject[item.name], item.value];
+                        }
+                    } else {
+                        formObject[item.name] = item.value;
+                    }
+                });
+
+                return formObject;
+            }
+
+            function generateStarRating(rating) {
+                if (!rating || rating === 0) {
+                    return '<span class="text-muted">⭐ Chưa có đánh giá</span>';
+                }
+                return `⭐ ${rating.toFixed(1)}`;
+            }
+
+            function highlightMatch(text, query) {
+                const regex = new RegExp(`(${query})`, 'gi');
+                return text.replace(regex, '<mark>$1</mark>');
+            }
+
+        });
+    </script>
+}

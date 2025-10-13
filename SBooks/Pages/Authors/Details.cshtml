@@ -1,0 +1,376 @@
+@page "/Authors/Details/{id:long}"
+@model SBooks.Pages.Authors.DetailsModel
+@{
+    ViewData["Title"] = $"Tác giả - {Model.Author.AuthorName}";
+}
+
+<div class="container-fluid">
+    <!-- Author Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card author-header-card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-2 text-center">
+                            <div class="author-avatar">
+                                @{
+                                    var initials = Model.Author.AuthorName
+                                        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                        .Take(2)
+                                        .Select(x => x[0])
+                                        .ToArray();
+                                }
+                                <span>@string.Join("", initials).ToUpper()</span>
+                            </div>
+                        </div>
+                        <div class="col-md-10">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h1 class="mb-2">@Model.Author.AuthorName</h1>
+                                    
+                                    @if (!string.IsNullOrEmpty(Model.Author.Email))
+                                    {
+                                        <p class="text-muted mb-2">
+                                            <i class="fas fa-envelope me-2"></i>@Model.Author.Email
+                                        </p>
+                                    }
+
+                                    @if (Model.Author.BirthDate.HasValue)
+                                    {
+                                        <p class="text-muted mb-2">
+                                            <i class="fas fa-birthday-cake me-2"></i>
+                                            Sinh ngày: @Model.Author.BirthDate.Value.ToString("dd/MM/yyyy")
+                                            @{
+                                                var age = DateTime.Now.Year - Model.Author.BirthDate.Value.Year;
+                                                if (DateTime.Now.DayOfYear < Model.Author.BirthDate.Value.DayOfYear) age--;
+                                            }
+                                            (@age tuổi)
+                                        </p>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(Model.Author.Sex))
+                                    {
+                                        <p class="text-muted mb-2">
+                                            <i class="fas fa-user me-2"></i>@Model.Author.Sex
+                                        </p>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(Model.Author.Biography))
+                                    {
+                                        <div class="mt-3">
+                                            <h6><i class="fas fa-quote-left me-2"></i>Tiểu sử</h6>
+                                            <p class="author-biography">@Model.Author.Biography</p>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="col-md-4">
+                                    <!-- Author Stats -->
+                                    <div class="row text-center author-stats">
+                                        <div class="col-6 mb-3">
+                                            <div class="stat-item">
+                                                <div class="stat-number text-primary">@Model.Stats.TotalBooks</div>
+                                                <div class="stat-label">Tác phẩm</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <div class="stat-item">
+                                                <div class="stat-number text-info">@Model.Stats.TotalViews.ToString("N0")</div>
+                                                <div class="stat-label">Lượt xem</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <div class="stat-item">
+                                                <div class="stat-number text-danger">@Model.Stats.TotalFavorites</div>
+                                                <div class="stat-label">Yêu thích</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <div class="stat-item">
+                                                <div class="stat-number text-success">@Model.Stats.TotalReviews</div>
+                                                <div class="stat-label">Đánh giá</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @if (Model.Stats.AverageRating > 0)
+                                    {
+                                        <div class="text-center mt-3 p-3 bg-light rounded">
+                                            <h6 class="text-black fw-bold">Điểm đánh giá trung bình</h6>
+                                            <div class="rating-display">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    <i class="fas fa-star @(i <= Model.Stats.AverageRating ? "text-warning" : "text-muted")"></i>
+                                                }
+                                                <span class="ms-2 fw-bold text-black">@Model.Stats.AverageRating.ToString("0.1")/5</span>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Author Stats Section -->
+    @if (Model.Stats.TopGenres.Any() || Model.Stats.MostPopularBook != null)
+    {
+        <div class="row mb-4">
+            @if (Model.Stats.TopGenres.Any())
+            {
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5><i class="fas fa-chart-pie me-2"></i>Thể loại chuyên môn</h5>
+                        </div>
+                        <div class="card-body">
+                            @foreach (var genre in Model.Stats.TopGenres.Take(5))
+                            {
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="genre-name">@genre.Key</span>
+                                        <span class="badge bg-primary">@genre.Value tác phẩm</span>
+                                    </div>
+                                    <div class="progress mt-1" style="height: 5px;">
+                                        @{
+                                            var percentage = (double)genre.Value / Model.Stats.TotalBooks * 100;
+                                        }
+                                        <div class="progress-bar" style="width: @percentage%"></div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (Model.Stats.MostPopularBook != null)
+            {
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5><i class="fas fa-trophy me-2"></i>Tác phẩm nổi bật nhất</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-4">
+                                    @if (!string.IsNullOrEmpty(Model.Stats.MostPopularBook.UrlImage))
+                                    {
+                                        <img src="@Model.Stats.MostPopularBook.UrlImage" class="img-fluid rounded" alt="@Model.Stats.MostPopularBook.Title">
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 100px;">
+                                            <i class="fas fa-book fa-2x text-muted"></i>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="col-8">
+                                    <h6>
+                                        <a href="/Books/Details/@Model.Stats.MostPopularBook.BookId" class="text-decoration-none">
+                                            @Model.Stats.MostPopularBook.Title
+                                        </a>
+                                    </h6>
+                                    @if (Model.Stats.MostPopularBook.PublishedYear.HasValue)
+                                    {
+                                        <p class="text-muted small mb-1">Xuất bản: @Model.Stats.MostPopularBook.PublishedYear</p>
+                                    }
+                                    @if (!string.IsNullOrEmpty(Model.Stats.MostPopularBook.Genre))
+                                    {
+                                        <span class="badge bg-secondary">@Model.Stats.MostPopularBook.Genre</span>
+                                    }
+                                    <div class="mt-2">
+                                        <small class="text-success">
+                                            <i class="fas fa-heart me-1"></i>@Model.Stats.MostPopularBook.FavoriteBooks.Count yêu thích
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Author's Books Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-books me-2"></i>Tác phẩm của @Model.Author.AuthorName</h5>
+                    <span class="badge bg-primary">@Model.Books.TotalCount tác phẩm</span>
+                </div>
+                <div class="card-body">
+                    @if (Model.Books.Items.Any())
+                    {
+                        <div id="author-books-container">
+                            @await Html.PartialAsync("_AuthorBooks", Model.Books.Items)
+                        </div>
+
+                        <!-- Pagination -->
+                        @if (Model.Books.TotalPages > 1)
+                        {
+                            <nav aria-label="Phân trang sách" class="mt-4">
+                                <ul class="pagination justify-content-center">
+                                    @if (Model.Books.Page > 1)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=@(Model.Books.Page - 1)">
+                                                <i class="fas fa-chevron-left"></i> Trước
+                                            </a>
+                                        </li>
+                                    }
+
+                                    @for (int i = Math.Max(1, Model.Books.Page - 2); i <= Math.Min(Model.Books.TotalPages, Model.Books.Page + 2); i++)
+                                    {
+                                        <li class="page-item @(i == Model.Books.Page ? "active" : "")">
+                                            <a class="page-link" href="?page=@i">@i</a>
+                                        </li>
+                                    }
+
+                                    @if (Model.Books.Page < Model.Books.TotalPages)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=@(Model.Books.Page + 1)">
+                                                Sau <i class="fas fa-chevron-right"></i>
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </nav>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Tác giả này chưa có tác phẩm nào</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .author-header-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .author-avatar {
+            width: 120px;
+            height: 120px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            color: white;
+            font-size: 36px;
+            font-weight: bold;
+            border: 4px solid rgba(255,255,255,0.3);
+        }
+
+        .author-biography {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid rgba(255,255,255,0.3);
+        }
+
+        .author-stats .stat-item {
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            transition: transform 0.2s;
+        }
+
+        .author-stats .stat-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        .rating-display {
+            font-size: 1.2rem;
+        }
+
+        .genre-name {
+            font-weight: 500;
+        }
+
+        .progress {
+            background-color: #e9ecef;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .book-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #e0e0e0;
+        }
+
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .book-image {
+            height: 250px;
+            object-fit: cover;
+        }
+
+        .book-title {
+            font-size: 0.95rem;
+            line-height: 1.3;
+            height: 2.6rem;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .book-title a:hover {
+            color: #007bff !important;
+        }
+
+        .pagination .page-link {
+            color: #667eea;
+            border-color: #dee2e6;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #667eea;
+            border-color: #667eea;
+        }
+    </style>
+}

@@ -1,0 +1,1102 @@
+@page "/Books/Details/{id:long}"
+@model SBooks.Pages.Books.DetailsModel
+@using SBooks.Models.DTOs
+@using SBooks.Extensions
+@{
+    ViewData["Title"] = Model.Book?.Title ?? "Chi tiết sách";
+}
+
+@Html.AntiForgeryToken()
+
+@section Styles {
+    <style>
+        .book-detail-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .book-image-large {
+            width: 100%;
+            max-width: 300px;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .rating-overview {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .rating-stars-large {
+            font-size: 24px;
+            color: #ffc107;
+            margin-bottom: 10px;
+        }
+
+        .rating-bar {
+            background: #e9ecef;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+        .rating-fill {
+            background: #ffc107;
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .review-section {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .review-item {
+            border-bottom: 1px solid #e9ecef;
+            padding: 20px 0;
+        }
+
+        .review-item:last-child {
+            border-bottom: none;
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .reviewer-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .reviewer-avatar {
+            width: 40px;
+            height: 40px;
+            background: #007bff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .review-rating {
+            color: #ffc107;
+        }
+
+        .review-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .action-btn:hover {
+            color: #007bff;
+        }
+
+        .action-btn.active {
+            color: #007bff;
+            font-weight: 600;
+        }
+
+        .related-books {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            height: 600px;
+            overflow-y: auto;
+        }
+
+        .related-book-item {
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            border: 1px solid #e9ecef;
+        }
+
+        .related-book-item:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .related-book-image {
+            width: 80px;
+            height: 120px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-right: 15px;
+            flex-shrink: 0;
+            background: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .related-book-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .related-book-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .related-book-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .related-book-author {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .related-book-rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+        }
+
+        .related-book-rating .stars {
+            color: #ffc107;
+        }
+
+        .related-book-rating .rating-text {
+            color: #666;
+        }
+
+        /* Scrollbar styling */
+        .related-books::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .related-books::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .related-books::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .related-books::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        .review-form {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .star-rating {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            flex-direction: row-reverse;
+        }
+
+        .star-rating input {
+            display: none;
+        }
+
+        .star-rating label {
+            font-size: 30px;
+            color: #ddd;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .star-rating label:hover {
+            color: #ffc107;
+            transform: scale(1.1);
+        }
+
+        .star-rating label:hover~label {
+            color: #ffc107;
+        }
+
+        .star-rating input:checked~label {
+            color: #ffc107;
+        }
+
+        .star-rating input:checked~label:hover {
+            color: #ffb400;
+        }
+
+        /* Hiệu ứng khi đã chọn */
+        .star-rating.selected label {
+            color: #ddd;
+        }
+
+        .star-rating.selected input:checked~label {
+            color: #ffc107;
+            text-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+        }
+
+        .book-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .tag {
+            background: #e9ecef;
+            color: #495057;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: inline-block;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .tag.genre {
+            background: #007bff;
+            color: white;
+        }
+
+        /* Rating label styles */
+        .rating-label {
+            font-weight: 600;
+            color: #495057;
+            font-size: 16px;
+        }
+
+        .rating-text {
+            font-size: 14px;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        /* Reply form styles */
+        .reply-form {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            border-left: 3px solid #007bff;
+            display: none;
+        }
+
+        .reply-form.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @@keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .reply-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .reply-textarea {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .reply-textarea:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+
+        .reply-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .reply-btn-send {
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .reply-btn-send:hover {
+            background: #0056b3;
+        }
+
+        .reply-btn-cancel {
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .reply-btn-cancel:hover {
+            background: #545b62;
+        }
+
+        /* Nested replies styling */
+        .nested-replies {
+            margin-left: 30px;
+            margin-top: 15px;
+            border-left: 2px solid #e9ecef;
+            padding-left: 15px;
+        }
+
+        .nested-reply-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #e9ecef;
+        }
+
+        .nested-reply-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .nested-reply-avatar {
+            width: 30px;
+            height: 30px;
+            background: #28a745;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+            margin-right: 8px;
+        }
+    </style>
+}
+
+@if (Model.Book == null)
+{
+    <div class="container">
+        <div class="alert alert-danger">
+            <h4>Không tìm thấy sách</h4>
+            <p>Sách bạn đang tìm không tồn tại hoặc đã bị xóa.</p>
+            <a href="/" class="btn btn-primary">Về trang chủ</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container-fluid">
+        <!-- Book Details -->
+        <div class="book-detail-container">
+            <div class="row g-4">
+                <div class="col-md-8 row p-4 ">
+                    <div class="col-md-4">
+                        <div style="max-width: 300px;">
+                            @if (!string.IsNullOrEmpty(Model.Book.UrlImage))
+                            {
+                                <img src="@Model.Book.UrlImage" alt="@Model.Book.Title" class="book-image-large"
+                                    onload="this.style.display='block';"
+                                    onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'book-image-large d-flex flex-column align-items-center justify-content-center text-muted\'><i class=\'fas fa-book fa-3x mb-2\'></i><span>Không có ảnh</span></div>';">
+                            }
+                            else
+                            {
+                                <div
+                                    class="book-image-large d-flex flex-column align-items-center justify-content-center text-muted">
+                                    <i class="fas fa-book fa-3x mb-2"></i>
+                                    <span>Không có ảnh</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="col-md-8">
+                        <h1 class="mb-3">@Model.Book.Title</h1>
+
+                        <div class="mb-3">
+                            @if (Model.Book.Author != null)
+                            {
+                                <p class="lead mb-2">
+                                    <strong>Tác giả:</strong>
+                                    <a href="/Authors/Details/@Model.Book.Author.AuthorId" class="text-decoration-none">
+                                        @Model.Book.Author.AuthorName
+                                    </a>
+                                </p>
+                            }
+
+                            @if (Model.Book.Publisher != null)
+                            {
+                                <p class="mb-2">
+                                    <strong>Nhà xuất bản:</strong> @Model.Book.Publisher.PublisherName
+                                </p>
+                            }
+
+                            @if (Model.Book.PublishedYear.HasValue)
+                            {
+                                <p class="mb-2">
+                                    <strong>Năm xuất bản:</strong> @Model.Book.PublishedYear
+                                </p>
+                            }
+
+                            @if (Model.Book.Price.HasValue && Model.Book.Price > 0)
+                            {
+                                <p class="mb-2">
+                                    <strong>Giá:</strong>
+                                    <span class="text-danger fw-bold fs-4">@Model.Book.Price.Value.ToString("N0") ₫</span>
+                                </p>
+                            }
+                        </div>
+
+                        <!-- Tags -->
+                        <div class="mb-3">
+                            @if (!string.IsNullOrEmpty(Model.Book.Genre))
+                            {
+                                <span class="tag genre">
+                                    <i class="fas fa-bookmark me-1"></i>
+                                    @Model.Book.Genre
+                                </span>
+                            }
+                            @if (Model.Book.ViewCount > 0)
+                            {
+                                <span class="tag">
+                                    <i class="fas fa-eye me-1"></i>
+                                    @Model.Book.ViewCount lượt xem
+                                </span>
+                            }
+                            @if (Model.Book.FavoriteBooks?.Count > 0)
+                            {
+                                <span class="tag" style="background: #dc3545; color: white;">
+                                    <i class="fas fa-heart me-1"></i>
+                                    @Model.Book.FavoriteBooks.Count yêu thích
+                                </span>
+                            }
+                        </div>
+
+                        <!-- Description -->
+                        @if (!string.IsNullOrEmpty(Model.Book.Description))
+                        {
+                            <div class="mb-4">
+                                <h5>Mô tả</h5>
+                                <p class="text-muted">@Model.Book.Description</p>
+                            </div>
+                        }
+
+                        <!-- Actions -->
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <div class="book-actions">
+                                <button type="button"
+                                    class="btn @(Model.IsFavorited ? "btn-danger" : "btn-outline-danger") favorite-btn"
+                                    data-book-id="@Model.Book.BookId">
+                                    <i class="fas fa-heart"></i>
+                                    @(Model.IsFavorited ? "Đã yêu thích" : "Yêu thích")
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info">
+                                <a href="/Auth/Login" class="text-decoration-none">Đăng nhập</a>
+                                để yêu thích sách và viết đánh giá
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <!-- Related Books -->
+                    @if (Model.RelatedBooks.Any())
+                    {
+                        <div class="related-books">
+                            <h5 class="mb-4">
+                                <i class="fas fa-book-open text-primary"></i>
+                                Sách liên quan
+                                <span class="badge bg-secondary ms-2">@Model.RelatedBooks.Count()</span>
+                            </h5>
+
+                            @foreach (var book in Model.RelatedBooks)
+                            {
+                                <div class="related-book-item">
+                                    <div class="related-book-image">
+                                        @if (!string.IsNullOrEmpty(book.UrlImage))
+                                        {
+                                            <img src="@book.UrlImage" alt="@book.Title" onload="this.style.display='block';"
+                                                onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fas fa-book text-muted\'></i>';">
+                                        }
+                                        else
+                                        {
+                                            <i class="fas fa-book text-muted"></i>
+                                        }
+                                    </div>
+
+                                    <div class="related-book-info">
+                                        <a href="/Books/Details/@book.BookId" class="text-decoration-none">
+                                            <h6 class="related-book-title" title="@book.Title">@book.Title</h6>
+                                        </a>
+
+                                        <p class="related-book-author mb-0">
+                                            <i class="fas fa-user-edit me-1"></i>
+                                            @(book.AuthorName ?? "Không rõ tác giả")
+                                        </p>
+
+                                        <div class="related-book-rating">
+                                            <div class="stars">
+                                                @{
+                                                    var relatedRating = book.AverageRating;
+                                                    var relatedFullStars = (int)Math.Floor(relatedRating);
+                                                    var relatedHalfStar = relatedRating % 1 >= 0.5;
+                                                    var relatedEmptyStars = 5 - relatedFullStars - (relatedHalfStar ? 1 : 0);
+                                                }
+
+                                                @for (int i = 0; i < relatedFullStars; i++)
+                                                {
+                                                    <i class="fas fa-star"></i>
+                                                }
+
+                                                @if (relatedHalfStar)
+                                                {
+                                                    <i class="fas fa-star-half-alt"></i>
+                                                }
+
+                                                @for (int i = 0; i < relatedEmptyStars; i++)
+                                                {
+                                                    <i class="far fa-star"></i>
+                                                }
+                                            </div>
+
+                                            <span class="rating-text">
+                                                @book.AverageRating.ToString("F1")
+                                                (@book.ReviewCount đánh giá)
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Rating Overview -->
+        <div class="container">
+            <div class="rating-overview">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <div class="rating-stars-large">
+                                @{
+                                    var fullStars = (int)Math.Floor(Model.AverageRating);
+                                    var halfStar = Model.AverageRating % 1 >= 0.5;
+                                    var emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+                                }
+
+                                @for (int i = 0; i < fullStars; i++)
+                                {
+                                    <i class="fas fa-star"></i>
+                                }
+
+                                @if (halfStar)
+                                {
+                                    <i class="fas fa-star-half-alt"></i>
+                                }
+
+                                @for (int i = 0; i < emptyStars; i++)
+                                {
+                                    <i class="far fa-star"></i>
+                                }
+                            </div>
+                            <h3 class="mb-1">@Model.AverageRating.ToString("F1")</h3>
+                            <p class="text-muted">@Model.MainReviews.Count đánh giá</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-8">
+                        @for (int star = 5; star >= 1; star--)
+                        {
+                            var count = Model.RatingDistribution.GetValueOrDefault(star, 0);
+                            var percentage = Model.MainReviews.Count > 0 ? (count * 100.0 / Model.MainReviews.Count) : 0;
+
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="me-2">@star ⭐</span>
+                                <div class="rating-bar flex-fill me-2">
+                                    <div class="rating-fill" style="width: @percentage%"></div>
+                                </div>
+                                <span class="text-muted">@count</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review Form -->
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                @if (Model.CanReview)
+                {
+                    <div class="review-form">
+                        <h5 class="mb-3">Viết đánh giá của bạn</h5>
+
+                        <form method="post" id="review-form">
+                            <div class="star-rating mb-3 align-items-center justify-content-start" id="review-stars">
+                                <span class="me-3 rating-label">Đánh giá:</span>
+
+                                <input type="radio" name="Rating" value="5" id="star5" required>
+                                <label for="star5" title="5 sao - Tuyệt vời">⭐</label>
+
+                                <input type="radio" name="Rating" value="4" id="star4" required>
+                                <label for="star4" title="4 sao - Rất tốt">⭐</label>
+
+                                <input type="radio" name="Rating" value="3" id="star3" required>
+                                <label for="star3" title="3 sao - Tốt">⭐</label>
+
+                                <input type="radio" name="Rating" value="2" id="star2" required>
+                                <label for="star2" title="2 sao - Tạm được">⭐</label>
+
+                                <input type="radio" name="Rating" value="1" id="star1" required>
+                                <label for="star1" title="1 sao - Không tốt">⭐</label>
+
+                                <span class="ms-3 rating-text text-muted" id="rating-text">Chọn số sao</span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="CommentText" class="form-label">Nhận xét (tùy chọn)</label>
+                                <textarea name="CommentText" id="CommentText" class="form-control" rows="4"
+                        placeholder="Chia sẻ cảm nhận của bạn về cuốn sách..."></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary" id="submit-review">
+                                <i class="fas fa-paper-plane"></i> Gửi đánh giá
+                            </button>
+                        </form>
+                    </div>
+                }
+                else if (Model.UserReview != null)
+                {
+                    <div class="alert alert-success">
+                        <h6>Đánh giá của bạn</h6>
+                        <div class="text-warning mb-2">
+                            @for (int i = 1; i <= (Model.UserReview.Rating ?? 0); i++)
+                            {
+                                <i class="fas fa-star"></i>
+                            }
+                            @for (int i = (Model.UserReview.Rating ?? 0) + 1; i <= 5; i++)
+                            {
+                                <i class="far fa-star"></i>
+                            }
+                        </div>
+                        @if (!string.IsNullOrEmpty(Model.UserReview.CommentText))
+                        {
+                            <p class="mb-0">@Model.UserReview.CommentText</p>
+                        }
+                        <small class="text-muted">
+                            Đánh giá lúc @Model.UserReview.CreatedAt.ToLocalTimeString()
+                        </small>
+                    </div>
+                }
+            }
+
+            <!-- Reviews -->
+            @if (Model.MainReviews.Any())
+            {
+                <div class="review-section">
+                    <h5 class="mb-4">Đánh giá từ độc giả</h5>
+
+                    @foreach (var review in Model.MainReviews)
+                    {
+                        <div class="review-item">
+                            <div class="review-header">
+                                <div class="reviewer-info">
+                                    <div class="reviewer-avatar">
+                                        @review.User.FullName?.Substring(0, 1).ToUpper()
+                                    </div>
+                                    <div>
+                                        <strong>@(review.User.FullName ?? review.User.Username)</strong>
+                                        @if (review.Rating.HasValue)
+                                        {
+                                            <div class="review-rating">
+                                                @for (int i = 1; i <= review.Rating; i++)
+                                                {
+                                                    <i class="fas fa-star"></i>
+                                                }
+                                                @for (int i = review.Rating.Value + 1; i <= 5; i++)
+                                                {
+                                                    <i class="far fa-star"></i>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                <small class="text-muted">
+                                    @review.CreatedAt.ToLocalTimeString()
+                                </small>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(review.CommentText))
+                            {
+                                <p class="mb-3">@review.CommentText</p>
+                            }
+
+                            <div class="review-actions">
+                                <button type="button" class="action-btn like-btn" data-review-id="@review.ReviewId">
+                                    <i class="fas fa-thumbs-up"></i>
+                                    <span class="like-count">@(review.LikeCount ?? 0)</span>
+                                </button>
+
+                                <button type="button" class="action-btn dislike-btn" data-review-id="@review.ReviewId">
+                                    <i class="fas fa-thumbs-down"></i>
+                                    <span class="dislike-count">@(review.DislikeCount ?? 0)</span>
+                                </button>
+
+                                @if (User.Identity?.IsAuthenticated == true)
+                                {
+                                    <button type="button" class="action-btn reply-btn" data-review-id="@review.ReviewId">
+                                        <i class="fas fa-reply"></i> Trả lời
+                                    </button>
+                                }
+                            </div>
+
+                            <!-- Reply Form -->
+                            <div class="reply-form" id="reply-form-@review.ReviewId">
+                                <div class="reply-input-group">
+                                    <textarea class="reply-textarea" placeholder="Viết phản hồi của bạn..." rows="3"></textarea>
+                                    <div class="reply-actions">
+                                        <button type="button" class="reply-btn-send" data-parent-id="@review.ReviewId">
+                                            <i class="fas fa-paper-plane"></i> Gửi
+                                        </button>
+                                        <button type="button" class="reply-btn-cancel">
+                                            <i class="fas fa-times"></i> Hủy
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Replies -->
+                            @if (review.InverseParentReview.Any())
+                            {
+                                <div class="nested-replies">
+                                    @foreach (var reply in review.InverseParentReview.OrderBy(r => r.CreatedAt))
+                                    {
+                                        <div class="nested-reply-item">
+                                            <div class="nested-reply-header">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="nested-reply-avatar">
+                                                        @reply.User.FullName?.Substring(0, 1).ToUpper()
+                                                    </div>
+                                                    <div>
+                                                        <strong>@(reply.User.FullName ?? reply.User.Username)</strong>
+                                                        <small class="text-muted ms-2">
+                                                            @reply.CreatedAt.ToLocalTimeString()
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @if (!string.IsNullOrEmpty(reply.CommentText))
+                                            {
+                                                <p class="mb-0">@reply.CommentText</p>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            function getAntiForgeryToken() {
+                return $('input[name="__RequestVerificationToken"]').val();
+            }
+
+            // Star rating for review form
+            $('.star-rating input').change(function () {
+                var rating = $(this).val();
+                var ratingContainer = $(this).closest('.star-rating');
+                var ratingText = $('#rating-text');
+
+                // Thêm class selected để hiện hiệu ứng
+                ratingContainer.addClass('selected');
+
+                // Cập nhật text hiển thị
+                var ratingTexts = {
+                    '1': '1 sao - Không tốt',
+                    '2': '2 sao - Tạm được',
+                    '3': '3 sao - Tốt',
+                    '4': '4 sao - Rất tốt',
+                    '5': '5 sao - Tuyệt vời'
+                };
+
+                ratingText.text(ratingTexts[rating] || 'Chọn số sao');
+                ratingText.removeClass('text-muted').addClass('text-warning fw-bold');
+
+                console.log('Selected rating:', rating); // Debug log
+            });
+
+            // Form submission handler để debug
+            $('#review-form').on('submit', function (e) {
+                var selectedRating = $('input[name="Rating"]:checked').val();
+                var comment = $('#CommentText').val();
+
+                console.log('Form submitted with:');
+                console.log('Rating:', selectedRating);
+                console.log('Comment:', comment);
+
+                if (!selectedRating) {
+                    e.preventDefault();
+                    alert('Vui lòng chọn số sao đánh giá!');
+                    return false;
+                }
+
+                // Let form submit normally
+                return true;
+            });
+
+            // Hover effects cho star rating
+            $('.star-rating label').hover(
+                function () {
+                    var rating = $(this).prev('input').val();
+                    var ratingText = $('#rating-text');
+                    var ratingTexts = {
+                        '1': '1 sao - Không tốt',
+                        '2': '2 sao - Tạm được',
+                        '3': '3 sao - Tốt',
+                        '4': '4 sao - Rất tốt',
+                        '5': '5 sao - Tuyệt vời'
+                    };
+
+                    if (!$(this).closest('.star-rating').hasClass('selected')) {
+                        ratingText.text(ratingTexts[rating] || 'Chọn số sao');
+                        ratingText.addClass('text-primary');
+                    }
+                },
+                function () {
+                    var ratingText = $('#rating-text');
+                    if (!$(this).closest('.star-rating').hasClass('selected')) {
+                        ratingText.text('Chọn số sao');
+                        ratingText.removeClass('text-primary');
+                    }
+                }
+            );
+
+            // Favorite button
+            $('.favorite-btn').click(function () {
+                var btn = $(this);
+                var bookId = btn.data('book-id');
+
+                btn.prop('disabled', true);
+
+                $.post('/Books/Details/@Model.Book?.BookId?handler=ToggleFavorite', {
+                    bookId: bookId,
+                    __RequestVerificationToken: getAntiForgeryToken()
+                })
+                    .done(function (response) {
+                        if (response.success) {
+                            if (response.isFavorited) {
+                                btn.removeClass('btn-outline-danger')
+                                    .addClass('btn-danger')
+                                    .html('<i class="fas fa-heart"></i> Đã yêu thích');
+                            } else {
+                                btn.removeClass('btn-danger')
+                                    .addClass('btn-outline-danger')
+                                    .html('<i class="fas fa-heart"></i> Yêu thích');
+                            }
+                        } else {
+                            alert(response);
+                        }
+                    })
+                    .fail(function () {
+                        alert('Có lỗi xảy ra. Vui lòng thử lại.');
+                    })
+                    .always(function () {
+                        btn.prop('disabled', false);
+                    });
+            });
+
+            // Like/Dislike review
+            $('.like-btn, .dislike-btn').click(function () {
+                @if (User.Identity?.IsAuthenticated != true)
+                    {
+                        <text>
+                            alert('Bạn cần đăng nhập để thực hiện chức năng này');
+                            return;
+                        </text>
+                }
+                
+                                                            var btn = $(this);
+                var reviewId = btn.data('review-id');
+                var isLike = btn.hasClass('like-btn');
+
+                btn.prop('disabled', true);
+
+                $.post('/Books/Details/@Model.Book?.BookId?handler=LikeReview', {
+                    reviewId: reviewId,
+                    isLike: isLike,
+                    __RequestVerificationToken: getAntiForgeryToken()
+                })
+                    .done(function (response) {
+                        if (response.success) {
+                            // Update counts
+                            btn.siblings('.like-btn').find('.like-count').text(response.likeCount);
+                            btn.siblings('.dislike-btn').find('.dislike-count').text(response.dislikeCount);
+                            btn.parent().find('.like-count').text(response.likeCount);
+                            btn.parent().find('.dislike-count').text(response.dislikeCount);
+                        } else {
+                            alert(response.message);
+                        }
+                    })
+                    .fail(function () {
+                        alert('Có lỗi xảy ra. Vui lòng thử lại.');
+                    })
+                    .always(function () {
+                        btn.prop('disabled', false);
+                    });
+            });
+
+            // Reply functionality
+            $('.reply-btn').click(function () {
+                var reviewId = $(this).data('review-id');
+                var replyForm = $('#reply-form-' + reviewId);
+
+                // Hide all other reply forms
+                $('.reply-form').removeClass('show');
+
+                // Toggle current reply form
+                replyForm.toggleClass('show');
+
+                if (replyForm.hasClass('show')) {
+                    // Focus on textarea when form shows
+                    replyForm.find('.reply-textarea').focus();
+                }
+            });
+
+            // Cancel reply
+            $('.reply-btn-cancel').click(function () {
+                $(this).closest('.reply-form').removeClass('show');
+                $(this).closest('.reply-form').find('.reply-textarea').val('');
+            });
+
+            // Send reply
+            $('.reply-btn-send').click(function () {
+                @if (User.Identity?.IsAuthenticated != true)
+                    {
+                        <text>
+                            alert('Bạn cần đăng nhập để thực hiện chức năng này');
+                            return;
+                        </text>
+                }
+
+                                var btn = $(this);
+                var parentId = btn.data('parent-id');
+                var replyForm = btn.closest('.reply-form');
+                var commentText = replyForm.find('.reply-textarea').val().trim();
+
+                if (!commentText) {
+                    alert('Vui lòng nhập nội dung phản hồi');
+                    return;
+                }
+
+                btn.prop('disabled', true);
+                btn.html('<i class="fas fa-spinner fa-spin"></i> Gửi...');
+
+                $.post('/Books/Details/@Model.Book?.BookId?handler=ReplyReview', {
+                    parentReviewId: parentId,
+                    commentText: commentText,
+                    __RequestVerificationToken: getAntiForgeryToken()
+                })
+                    .done(function (response) {
+                        if (response.success) {
+                            // Hide reply form
+                            replyForm.removeClass('show');
+                            replyForm.find('.reply-textarea').val('');
+
+                            // Reload page to show new reply
+                            // In production, you might want to add the reply dynamically
+                            window.location.reload();
+                        } else {
+                            alert(response.message || 'Có lỗi xảy ra khi gửi phản hồi');
+                        }
+                    })
+                    .fail(function () {
+                        alert('Có lỗi xảy ra. Vui lòng thử lại.');
+                    })
+                    .always(function () {
+                        btn.prop('disabled', false);
+                        btn.html('<i class="fas fa-paper-plane"></i> Gửi');
+                    });
+            });
+        });
+    </script>
+}

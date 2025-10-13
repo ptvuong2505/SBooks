@@ -19,12 +19,17 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 
+    @await RenderSectionAsync("Styles", required: false)
+
 </head>
 
 <body>
+    <!-- Anti-forgery token for AJAX requests -->
+    @Html.AntiForgeryToken()
+    
     <header>
         <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
+            <div class="container-fluid px-5 ">
                 <a class="navbar-brand" asp-page="/Index">
                     <i class="fas fa-book text-primary me-1"></i>SBooks
                 </a>
@@ -42,9 +47,22 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" asp-page="/Books/Index">
-                                <i class="fas fa-book me-1"></i>Sách
+                                <i class="fas fa-book me-1"></i>Top Sách
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-page="/Authors/Index">
+                                <i class="fas fa-user-edit me-1"></i>Tác giả
+                            </a>
+                        </li>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-page="/Favorites/Index">
+                                    <i class="fas fa-heart me-1"></i>Yêu thích
+                                </a>
+                            </li>
+                        }
                     </ul>
 
                     <ul class="navbar-nav">
@@ -59,8 +77,8 @@
                                     <li><a class="dropdown-item" href="/Profile/Index">
                                         <i class="fas fa-user-circle me-2"></i>Hồ sơ
                                     </a></li>
-                                    <li><a class="dropdown-item" href="/Profile/Favorites">
-                                        <i class="fas fa-heart me-2"></i>Yêu thích
+                                    <li><a class="dropdown-item" href="/Favorites/Index">
+                                        <i class="fas fa-heart me-2"></i>Sách yêu thích
                                     </a></li>
                                     @if (User.IsInRole("Admin"))
                                     {
@@ -91,7 +109,7 @@
         </nav>
     </header>
 
-    <div class="container">
+    <div class="container-fluid">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>

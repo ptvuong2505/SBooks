@@ -1,0 +1,2 @@
+/* This is a placeholder for no-image.jpg */
+/* You can add a simple no-image placeholder image to wwwroot/images/ */

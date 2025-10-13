@@ -1,0 +1,224 @@
+@page "/Authors"
+@model SBooks.Pages.Authors.IndexModel
+@{
+    ViewData["Title"] = "Danh sách tác giả";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-users me-2"></i>Danh sách tác giả
+                </h2>
+                <div class="text-muted">
+                    <span>@Model.TotalAuthors tác giả</span>
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-10">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" name="SearchQuery" value="@Model.SearchQuery" 
+                                       class="form-control" placeholder="Tìm kiếm tác giả..." />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search me-1"></i>Tìm kiếm
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            @if (Model.Authors.Any())
+            {
+                <!-- Authors Grid -->
+                <div class="row">
+                    @foreach (var author in Model.Authors)
+                    {
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                            <div class="card h-100 author-card">
+                                <div class="card-body text-center">
+                                    <div class="author-avatar-small mb-3">
+                                        @{
+                                            var initials = author.AuthorName
+                                                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                                .Take(2)
+                                                .Select(x => x[0])
+                                                .ToArray();
+                                        }
+                                        <span>@string.Join("", initials).ToUpper()</span>
+                                    </div>
+
+                                    <h5 class="card-title">
+                                        <a href="/Authors/Details/@author.AuthorId" class="text-decoration-none">
+                                            @author.AuthorName
+                                        </a>
+                                    </h5>
+
+                                    @if (!string.IsNullOrEmpty(author.Email))
+                                    {
+                                        <p class="text-muted small mb-2">
+                                            <i class="fas fa-envelope me-1"></i>@author.Email
+                                        </p>
+                                    }
+
+                                    @if (author.BirthDate.HasValue)
+                                    {
+                                        <p class="text-muted small mb-2">
+                                            <i class="fas fa-birthday-cake me-1"></i>
+                                            @author.BirthDate.Value.ToString("dd/MM/yyyy")
+                                        </p>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(author.Sex))
+                                    {
+                                        <span class="badge bg-secondary mb-2">@author.Sex</span>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(author.Biography))
+                                    {
+                                        <p class="text-muted small author-bio-preview">
+                                            @(author.Biography.Length > 100 ? author.Biography.Substring(0, 100) + "..." : author.Biography)
+                                        </p>
+                                    }
+
+                                    <div class="mt-auto">
+                                        <a href="/Authors/Details/@author.AuthorId" class="btn btn-outline-primary">
+                                            <i class="fas fa-eye me-1"></i>Xem chi tiết
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Pagination -->
+                @if (Model.TotalPages > 1)
+                {
+                    <nav aria-label="Phân trang tác giả" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            @if (Model.Page > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=@(Model.Page - 1)@(!string.IsNullOrEmpty(Model.SearchQuery) ? "&SearchQuery=" + Uri.EscapeDataString(Model.SearchQuery) : "")">
+                                        <i class="fas fa-chevron-left"></i> Trước
+                                    </a>
+                                </li>
+                            }
+
+                            @for (int i = Math.Max(1, Model.Page - 2); i <= Math.Min(Model.TotalPages, Model.Page + 2); i++)
+                            {
+                                <li class="page-item @(i == Model.Page ? "active" : "")">
+                                    <a class="page-link" href="?page=@i@(!string.IsNullOrEmpty(Model.SearchQuery) ? "&SearchQuery=" + Uri.EscapeDataString(Model.SearchQuery) : "")">@i</a>
+                                </li>
+                            }
+
+                            @if (Model.Page < Model.TotalPages)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=@(Model.Page + 1)@(!string.IsNullOrEmpty(Model.SearchQuery) ? "&SearchQuery=" + Uri.EscapeDataString(Model.SearchQuery) : "")">
+                                        Sau <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                }
+            }
+            else
+            {
+                <!-- Empty state -->
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-users fa-5x text-muted"></i>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.SearchQuery))
+                    {
+                        <h3 class="text-muted mb-3">Không tìm thấy tác giả</h3>
+                        <p class="text-muted mb-4">
+                            Không có tác giả nào khớp với từ khóa "<strong>@Model.SearchQuery</strong>"
+                        </p>
+                        <a href="/Authors" class="btn btn-primary">
+                            <i class="fas fa-users me-2"></i>Xem tất cả tác giả
+                        </a>
+                    }
+                    else
+                    {
+                        <h3 class="text-muted mb-3">Chưa có tác giả nào</h3>
+                        <p class="text-muted mb-4">
+                            Hệ thống chưa có thông tin về tác giả nào
+                        </p>
+                        <a href="/" class="btn btn-primary">
+                            <i class="fas fa-home me-2"></i>Về trang chủ
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .author-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #e0e0e0;
+        }
+
+        .author-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .author-avatar-small {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .author-bio-preview {
+            height: 60px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+
+        .card-title a:hover {
+            color: #007bff !important;
+        }
+
+        .pagination .page-link {
+            color: #667eea;
+            border-color: #dee2e6;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #667eea;
+            border-color: #667eea;
+        }
+
+        .pagination .page-link:hover {
+            color: #5a6fd8;
+            background-color: #e9ecef;
+        }
+    </style>
+}

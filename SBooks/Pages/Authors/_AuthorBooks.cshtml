@@ -1,0 +1,109 @@
+@model List<SBooks.Models.DTOs.BookCardDto>
+
+<div class="row">
+    @foreach (var book in Model)
+    {
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 mb-4">
+            <div class="card h-100 book-card">
+                <div class="position-relative">
+                    @if (!string.IsNullOrEmpty(book.UrlImage))
+                    {
+                        <img src="@book.UrlImage" class="card-img-top book-image" alt="@book.Title">
+                    }
+                    else
+                    {
+                        <div class="card-img-top d-flex align-items-center justify-content-center bg-light book-image">
+                            <i class="fas fa-book fa-3x text-muted"></i>
+                        </div>
+                    }
+
+                    @if (book.AverageRating > 0)
+                    {
+                        <div class="position-absolute top-0 start-0 m-2">
+                            <span class="badge bg-warning text-dark">
+                                <i class="fas fa-star"></i> @book.AverageRating.ToString("0.1")
+                            </span>
+                        </div>
+                    }
+
+                    @if (book.IsFavorited)
+                    {
+                        <div class="position-absolute top-0 end-0 m-2">
+                            <span class="badge bg-danger">
+                                <i class="fas fa-heart"></i>
+                            </span>
+                        </div>
+                    }
+                </div>
+
+                <div class="card-body d-flex flex-column">
+                    <h6 class="card-title book-title">
+                        <a href="/Books/Details/@book.BookId" class="text-decoration-none text-dark">
+                            @book.Title
+                        </a>
+                    </h6>
+
+                    @if (book.PublishedYear.HasValue)
+                    {
+                        <p class="text-muted small mb-2">
+                            <i class="fas fa-calendar me-1"></i>@book.PublishedYear
+                        </p>
+                    }
+
+                    @if (!string.IsNullOrEmpty(book.Genre))
+                    {
+                        <p class="text-muted small mb-2">
+                            <i class="fas fa-tag me-1"></i>@book.Genre
+                        </p>
+                    }
+
+                    @if (book.AverageRating > 0)
+                    {
+                        <div class="mb-2">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <i class="fas fa-star @(i <= book.AverageRating ? "text-warning" : "text-muted") small"></i>
+                            }
+                            <span class="small text-muted ms-1">(@book.ReviewCount)</span>
+                        </div>
+                    }
+
+                    <div class="mt-auto">
+                        @if (book.Price.HasValue && book.Price > 0)
+                        {
+                            <div class="text-primary fw-bold mb-2">
+                                @book.Price.Value.ToString("C0")
+                            </div>
+                        }
+
+                        <div class="row text-center small text-muted">
+                            <div class="col-4">
+                                <i class="fas fa-eye"></i> @book.ViewCount
+                            </div>
+                            <div class="col-4">
+                                <i class="fas fa-heart"></i> @book.FavoriteCount
+                            </div>
+                            <div class="col-4">
+                                <i class="fas fa-star"></i> @book.ReviewCount
+                            </div>
+                        </div>
+
+                        <div class="mt-2">
+                            <a href="/Books/Details/@book.BookId" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="fas fa-eye me-1"></i>Xem chi tiết
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="text-center py-4">
+        <i class="fas fa-book fa-3x text-muted mb-3"></i>
+        <p class="text-muted">Không có tác phẩm nào</p>
+    </div>
+}

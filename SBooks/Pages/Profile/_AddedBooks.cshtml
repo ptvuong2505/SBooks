@@ -1,0 +1,86 @@
+@model List<SBooks.Models.DTOs.BookCardDto>
+
+<div class="row">
+    @foreach (var book in Model)
+    {
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="position-relative">
+                    @if (!string.IsNullOrEmpty(book.UrlImage))
+                    {
+                        <img src="@book.UrlImage" class="card-img-top" alt="@book.Title" style="height: 200px; object-fit: cover;">
+                    }
+                    else
+                    {
+                        <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 200px;">
+                            <i class="fas fa-book fa-3x text-muted"></i>
+                        </div>
+                    }
+                    <div class="position-absolute top-0 end-0 m-2">
+                        <span class="badge bg-info">Admin</span>
+                    </div>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <h6 class="card-title">
+                        <a href="/Books/Details/@book.BookId" class="text-decoration-none">
+                            @book.Title
+                        </a>
+                    </h6>
+                    <p class="text-muted small mb-1">@book.AuthorName</p>
+                    
+                    @if (book.AverageRating > 0)
+                    {
+                        <div class="mb-2">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <i class="fas fa-star @(i <= book.AverageRating ? "text-warning" : "text-muted") small"></i>
+                            }
+                            <span class="small text-muted ms-1">(@book.ReviewCount)</span>
+                        </div>
+                    }
+
+                    <div class="mt-auto">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <small class="text-muted d-block">Lượt xem</small>
+                                <strong class="text-info">@book.ViewCount</strong>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted d-block">Yêu thích</small>
+                                <strong class="text-danger">@book.FavoriteCount</strong>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted d-block">Đánh giá</small>
+                                <strong class="text-success">@book.ReviewCount</strong>
+                            </div>
+                        </div>
+                        
+                        @if (book.Price.HasValue && book.Price > 0)
+                        {
+                            <p class="fw-bold text-primary mb-1 mt-2">@book.Price.Value.ToString("C0")</p>
+                        }
+                        
+                        <small class="text-muted">
+                            Thêm ngày @book.CreatedAt?.ToString("dd/MM/yyyy")
+                        </small>
+                        
+                        <div class="mt-2">
+                            <a href="/Admin/Books/Upsert?id=@book.BookId" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-edit me-1"></i>Chỉnh sửa
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="text-center py-4">
+        <i class="fas fa-plus-circle fa-3x text-muted mb-3"></i>
+        <p class="text-muted">Bạn chưa thêm sách nào</p>
+        <a href="/Admin/Books/Upsert" class="btn btn-primary">Thêm sách mới</a>
+    </div>
+}

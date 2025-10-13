@@ -1,0 +1,264 @@
+@model PaginatedResult<BookCardDto>
+@using SBooks.Models.DTOs
+
+@if (Model.Items.Any())
+{
+    <!-- Results Info -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="mb-0">
+            Tìm thấy <strong>@Model.TotalCount</strong> cuốn sách
+            @if (Model.TotalPages > 1)
+            {
+                <span class="text-muted">(Trang @Model.Page/@Model.TotalPages)</span>
+            }
+        </h5>
+    </div>
+
+    <!-- Books Grid -->
+    <div class="row g-4 mb-5">
+        @foreach (var book in Model.Items)
+        {
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="book-card">
+                    <a href="/Books/Details/@book.BookId" class="text-decoration-none text-dark">
+                        <div class="book-image">
+                            @if (!string.IsNullOrEmpty(book.UrlImage))
+                            {
+                                <img src="@book.UrlImage" alt="@book.Title" style="width: 100%; height: 100%; object-fit: cover;"
+                                    onload="this.style.display='block';"
+                                    onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fas fa-book\'></i><br><small>Không có ảnh</small>';">
+                            }
+                            else
+                            {
+                                <i class="fas fa-book"></i>
+                                <br>
+
+                                <small>Không có ảnh</small>
+                            }
+                        </div>
+
+                        <div class="book-info">
+                            <h6 class="book-title" title="@book.Title">@book.Title</h6>
+                            @if (book.AuthorId.HasValue)
+                            {
+                                <p class="book-author mb-2">
+                                    <a href="/Authors/Details/@book.AuthorId" class="text-decoration-none text-muted">
+                                        @(book.AuthorName ?? "Không rõ tác giả")
+                                    </a>
+                                </p>
+                            }
+                            else
+                            {
+                                <p class="book-author mb-2">@(book.AuthorName ?? "Không rõ tác giả")</p>
+                            }
+
+                            <div class="book-rating">
+                                <div class="stars">
+                                    <i class="fas fa-star"></i>
+                                    <span class="rating-value">@book.AverageRating.ToString("F1")</span>
+                                </div>
+
+                                <small class="text-muted">
+                                    · @book.ReviewCount đánh giá
+                                </small>
+                            </div>
+
+                            @if (book.Price.HasValue && book.Price > 0)
+                            {
+                                <div class="book-price">@book.Price.Value.ToString("N0") ₫</div>
+                            }
+
+                            <div class="book-stats mt-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-heart text-danger"></i> @book.FavoriteCount
+                                </small>
+
+                                @if (book.PublishedYear.HasValue)
+                                {
+                                    <small class="text-muted">@book.PublishedYear</small>
+                                }
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Action buttons (for logged in users) -->
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <div class="card-footer bg-transparent border-0 pt-0">
+                            <div class="d-flex justify-content-between">
+                                <button type="button"
+                                    class="btn btn-outline-danger btn-sm favorite-btn @(book.IsFavorited ? "active" : "")"
+                                    data-book-id="@book.BookId" title="@(book.IsFavorited ? "Bỏ yêu thích" : "Thêm vào yêu thích")">
+                                    <i class="fas fa-heart"></i>
+                                    @(book.IsFavorited ? "Đã yêu thích" : "Yêu thích")
+                                </button>
+
+                                <a href="/Books/Details/@book.BookId" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-eye"></i> Xem chi tiết
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    @if (Model.TotalPages > 1)
+    {
+        <nav aria-label="Book pagination">
+            <ul class="pagination justify-content-center">
+                <!-- First page -->
+                @if (Model.Page > 1)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="#" data-page="1">
+                            <i class="fas fa-angle-double-left"></i>
+                        </a>
+                    </li>
+                }
+
+                <!-- Previous page -->
+                @if (Model.HasPreviousPage)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="#" data-page="@(Model.Page - 1)">
+                            <i class="fas fa-angle-left"></i>
+                        </a>
+                    </li>
+                }
+
+                <!-- Page numbers -->
+                @{
+                    var startPage = Math.Max(1, Model.Page - 2);
+                    var endPage = Math.Min(Model.TotalPages, Model.Page + 2);
+                }
+
+                @if (startPage > 1)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="#" data-page="1">1</a>
+                    </li>
+                    @if (startPage > 2)
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    }
+                }
+
+                @for (int i = startPage; i <= endPage; i++)
+                {
+                    <li class="page-item @(i == Model.Page ? "active" : "")">
+                        <a class="page-link" href="#" data-page="@i">@i</a>
+                    </li>
+                }
+
+                @if (endPage < Model.TotalPages)
+                {
+                    @if (endPage < Model.TotalPages - 1)
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    }
+                    <li class="page-item">
+                        <a class="page-link" href="#" data-page="@Model.TotalPages">@Model.TotalPages</a>
+                    </li>
+                }
+
+                <!-- Next page -->
+                @if (Model.HasNextPage)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="#" data-page="@(Model.Page + 1)">
+                            <i class="fas fa-angle-right"></i>
+                        </a>
+                    </li>
+                }
+
+                <!-- Last page -->
+                @if (Model.Page < Model.TotalPages)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="#" data-page="@Model.TotalPages">
+                            <i class="fas fa-angle-double-right"></i>
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+}
+else
+{
+    <div class="no-results">
+        <div class="text-center py-5">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <h4>Không tìm thấy sách nào</h4>
+            <p class="text-muted">Hãy thử thay đổi từ khóa tìm kiếm hoặc bộ lọc</p>
+            <button type="button" class="btn btn-primary" id="clearAllFilters">
+                <i class="fas fa-refresh"></i> Xóa tất cả bộ lọc
+            </button>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        // Favorite book functionality
+        $(document).on('click', '.favorite-btn', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const btn = $(this);
+            const bookId = btn.data('book-id');
+            const isFavorited = btn.hasClass('active');
+
+            // Disable button during request
+            btn.prop('disabled', true);
+
+            $.ajax({
+                url: '/Api/Favorite',
+                type: 'POST',
+                data: { bookId: bookId },
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                }
+            })
+                .done(function (response) {
+                    if (response.success) {
+                        if (isFavorited) {
+                            btn.removeClass('active')
+                                .html('<i class="fas fa-heart"></i> Yêu thích')
+                                .attr('title', 'Thêm vào yêu thích');
+                        } else {
+                            btn.addClass('active')
+                                .html('<i class="fas fa-heart"></i> Đã yêu thích')
+                                .attr('title', 'Bỏ yêu thích');
+                        }
+
+                        // Update favorite count in the same card
+                        const statsElement = btn.closest('.book-card').find('.book-stats small:first');
+                        const currentCount = parseInt(statsElement.text().match(/\d+/)[0]);
+                        const newCount = isFavorited ? currentCount - 1 : currentCount + 1;
+                        statsElement.html('<i class="fas fa-heart text-danger"></i> ' + newCount);
+                    } else {
+                        alert(response.message || 'Có lỗi xảy ra');
+                    }
+                })
+                .fail(function () {
+                    alert('Có lỗi xảy ra. Vui lòng thử lại.');
+                })
+                .always(function () {
+                    btn.prop('disabled', false);
+                });
+        });
+
+        // Clear all filters
+        $(document).on('click', '#clearAllFilters', function () {
+            $('#clearFilters').click();
+        });
+    </script>
+}
