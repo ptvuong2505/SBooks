@@ -25,6 +25,7 @@ namespace SBooks.Pages.Books
         public Review? UserReview { get; set; }
         public double AverageRating { get; set; }
         public Dictionary<int, int> RatingDistribution { get; set; } = new();
+        public Dictionary<long, int> UserVotes { get; set; } = new(); // ReviewId -> VoteType (1=like, -1=dislike, 0=no vote)
 
         [BindProperty]
         public int Rating { get; set; }
@@ -324,6 +325,17 @@ namespace SBooks.Pages.Books
                 .Where(r => r.ParentReviewId == null)
                 .OrderByDescending(r => r.CreatedAt)
                 .ToList();
+
+            // Load user votes for all reviews if user is authenticated
+            if (userId.HasValue)
+            {
+                var allReviewIds = Book.Reviews.Select(r => r.ReviewId).ToList();
+                var userVotes = await _context.ReviewVotes
+                    .Where(v => v.UserId == userId.Value && allReviewIds.Contains(v.ReviewId))
+                    .ToListAsync();
+
+                UserVotes = userVotes.ToDictionary(v => v.ReviewId, v => (int)v.VoteType);
+            }
 
             // Load related books
             await LoadRelatedBooksAsync();

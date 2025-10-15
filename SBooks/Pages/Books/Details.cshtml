@@ -404,30 +404,49 @@
 
         /* Nested replies styling */
         .nested-replies {
-            margin-left: 30px;
-            margin-top: 15px;
-            border-left: 2px solid #e9ecef;
-            padding-left: 15px;
+            margin-left: 40px;
+            margin-top: 20px;
+            border-left: 3px solid #e9ecef;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .nested-replies::before {
+            content: '';
+            position: absolute;
+            left: -3px;
+            top: 0;
+            height: 20px;
+            width: 3px;
+            background: linear-gradient(to bottom, #007bff, #e9ecef);
         }
 
         .nested-reply-item {
             background: #f8f9fa;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 10px;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 12px;
             border: 1px solid #e9ecef;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .nested-reply-item:hover {
+            background: #e9ecef;
+            border-color: #dee2e6;
+            transform: translateX(2px);
         }
 
         .nested-reply-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
         .nested-reply-avatar {
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             background: #28a745;
             border-radius: 50%;
             display: flex;
@@ -436,7 +455,139 @@
             color: white;
             font-weight: bold;
             font-size: 12px;
-            margin-right: 8px;
+            margin-right: 10px;
+        }
+
+        .nested-reply-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .nested-reply-actions .action-btn {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .nested-reply-actions .action-btn:hover {
+            background: rgba(0, 123, 255, 0.1);
+        }
+
+        .nested-reply-actions .action-btn.active {
+            background: rgba(0, 123, 255, 0.2);
+            color: #007bff;
+        }
+
+        /* Reply to reply form */
+        .nested-reply-form {
+            margin-top: 10px;
+            display: none;
+        }
+
+        .nested-reply-form.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @@keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .nested-reply-input-group {
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            padding: 12px;
+        }
+
+        .nested-reply-input-group textarea {
+            width: 100%;
+            border: none;
+            outline: none;
+            resize: vertical;
+            min-height: 60px;
+            font-size: 13px;
+        }
+
+        .nested-reply-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .nested-reply-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nested-reply-btn-send {
+            background: #007bff;
+            color: white;
+        }
+
+        .nested-reply-btn-send:hover {
+            background: #0056b3;
+        }
+
+        .nested-reply-btn-cancel {
+            background: #6c757d;
+            color: white;
+        }
+
+        .nested-reply-btn-cancel:hover {
+            background: #545b62;
+        }
+
+        /* Vote buttons active states */
+        .action-btn.like-active {
+            color: #28a745 !important;
+            background: rgba(40, 167, 69, 0.1);
+            font-weight: 600;
+        }
+
+        .action-btn.dislike-active {
+            color: #dc3545 !important;
+            background: rgba(220, 53, 69, 0.1);
+            font-weight: 600;
+        }
+
+        /* Button click animation */
+        .action-btn.btn-clicked {
+            transform: scale(0.95);
+            transition: transform 0.1s ease;
+        }
+
+        /* Improved button hover effects */
+        .action-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Loading state for buttons */
+        .action-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
         }
     </style>
 }
@@ -805,14 +956,20 @@ else
                             }
 
                             <div class="review-actions">
-                                <button type="button" class="action-btn like-btn" data-review-id="@review.ReviewId">
+                                @{
+                                    var userVote = Model.UserVotes.ContainsKey(review.ReviewId) ? Model.UserVotes[review.ReviewId] : 0;
+                                    var likeActive = userVote == 1 ? "like-active" : "";
+                                    var dislikeActive = userVote == -1 ? "dislike-active" : "";
+                                }
+
+                                <button type="button" class="action-btn like-btn @likeActive" data-review-id="@review.ReviewId">
                                     <i class="fas fa-thumbs-up"></i>
-                                    <span class="like-count">@(review.LikeCount ?? 0)</span>
+                                    <span class="like-count" data-previous="@(review.LikeCount ?? 0)">@(review.LikeCount ?? 0)</span>
                                 </button>
 
-                                <button type="button" class="action-btn dislike-btn" data-review-id="@review.ReviewId">
+                                <button type="button" class="action-btn dislike-btn @dislikeActive" data-review-id="@review.ReviewId">
                                     <i class="fas fa-thumbs-down"></i>
-                                    <span class="dislike-count">@(review.DislikeCount ?? 0)</span>
+                                    <span class="dislike-count" data-previous="@(review.DislikeCount ?? 0)">@(review.DislikeCount ?? 0)</span>
                                 </button>
 
                                 @if (User.Identity?.IsAuthenticated == true)
@@ -844,7 +1001,7 @@ else
                                 <div class="nested-replies">
                                     @foreach (var reply in review.InverseParentReview.OrderBy(r => r.CreatedAt))
                                     {
-                                        <div class="nested-reply-item">
+                                        <div class="nested-reply-item" data-reply-id="@reply.ReviewId">
                                             <div class="nested-reply-header">
                                                 <div class="d-flex align-items-center">
                                                     <div class="nested-reply-avatar">
@@ -860,7 +1017,96 @@ else
                                             </div>
                                             @if (!string.IsNullOrEmpty(reply.CommentText))
                                             {
-                                                <p class="mb-0">@reply.CommentText</p>
+                                                <p class="mb-2">@reply.CommentText</p>
+                                            }
+
+                                            <!-- Reply Actions -->
+                                            <div class="nested-reply-actions">
+                                                @{
+                                                    var replyUserVote = Model.UserVotes.ContainsKey(reply.ReviewId) ? Model.UserVotes[reply.ReviewId] : 0;
+                                                    var replyLikeActive = replyUserVote == 1 ? "like-active" : "";
+                                                    var replyDislikeActive = replyUserVote == -1 ? "dislike-active" : "";
+                                                }
+
+                                                <button type="button" class="action-btn like-btn @replyLikeActive" data-review-id="@reply.ReviewId">
+                                                    <i class="fas fa-thumbs-up"></i>
+                                                    <span class="like-count" data-previous="@(reply.LikeCount ?? 0)">@(reply.LikeCount ?? 0)</span>
+                                                </button>
+
+                                                <button type="button" class="action-btn dislike-btn @replyDislikeActive" data-review-id="@reply.ReviewId">
+                                                    <i class="fas fa-thumbs-down"></i>
+                                                    <span class="dislike-count" data-previous="@(reply.DislikeCount ?? 0)">@(reply.DislikeCount ?? 0)</span>
+                                                </button>
+
+                                                @if (User.Identity?.IsAuthenticated == true)
+                                                {
+                                                    <button type="button" class="action-btn nested-reply-btn" data-parent-id="@reply.ReviewId">
+                                                        <i class="fas fa-reply"></i> Trả lời
+                                                    </button>
+                                                }
+                                            </div>
+
+                                            <!-- Nested Reply Form -->
+                                            <div class="nested-reply-form" id="nested-reply-form-@reply.ReviewId">
+                                                <div class="nested-reply-input-group">
+                                                    <textarea class="nested-reply-textarea" placeholder="Viết phản hồi..." rows="2"></textarea>
+                                                    <div class="nested-reply-actions">
+                                                        <button type="button" class="nested-reply-btn nested-reply-btn-send" data-parent-id="@reply.ReviewId">
+                                                            <i class="fas fa-paper-plane"></i> Gửi
+                                                        </button>
+                                                        <button type="button" class="nested-reply-btn nested-reply-btn-cancel">
+                                                            <i class="fas fa-times"></i> Hủy
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Sub-replies (replies to replies) -->
+                                            @if (reply.InverseParentReview.Any())
+                                            {
+                                                <div class="nested-replies" style="margin-left: 20px; margin-top: 10px;">
+                                                    @foreach (var subReply in reply.InverseParentReview.OrderBy(r => r.CreatedAt))
+                                                    {
+                                                        <div class="nested-reply-item" data-reply-id="@subReply.ReviewId" style="background: #ffffff; border: 1px solid #dee2e6;">
+                                                            <div class="nested-reply-header">
+                                                                <div class="d-flex align-items-center">
+                                                                    <div class="nested-reply-avatar" style="background: #ffc107;">
+                                                                        @subReply.User.FullName?.Substring(0, 1).ToUpper()
+                                                                    </div>
+                                                                    <div>
+                                                                        <strong>@(subReply.User.FullName ?? subReply.User.Username)</strong>
+                                                                        <small class="text-muted ms-2">
+                                                                            @subReply.CreatedAt.ToLocalTimeString()
+                                                                        </small>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            @if (!string.IsNullOrEmpty(subReply.CommentText))
+                                                            {
+                                                                <p class="mb-2">@subReply.CommentText</p>
+                                                            }
+
+                                                            <!-- Sub-reply Actions -->
+                                                            <div class="nested-reply-actions">
+                                                                @{
+                                                                    var subReplyUserVote = Model.UserVotes.ContainsKey(subReply.ReviewId) ? Model.UserVotes[subReply.ReviewId] : 0;
+                                                                    var subReplyLikeActive = subReplyUserVote == 1 ? "like-active" : "";
+                                                                    var subReplyDislikeActive = subReplyUserVote == -1 ? "dislike-active" : "";
+                                                                }
+
+                                                                <button type="button" class="action-btn like-btn @subReplyLikeActive" data-review-id="@subReply.ReviewId">
+                                                                    <i class="fas fa-thumbs-up"></i>
+                                                                    <span class="like-count" data-previous="@(subReply.LikeCount ?? 0)">@(subReply.LikeCount ?? 0)</span>
+                                                                </button>
+
+                                                                <button type="button" class="action-btn dislike-btn @subReplyDislikeActive" data-review-id="@subReply.ReviewId">
+                                                                    <i class="fas fa-thumbs-down"></i>
+                                                                    <span class="dislike-count" data-previous="@(subReply.DislikeCount ?? 0)">@(subReply.DislikeCount ?? 0)</span>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
                                             }
                                         </div>
                                     }
@@ -880,6 +1126,16 @@ else
             function getAntiForgeryToken() {
                 return $('input[name="__RequestVerificationToken"]').val();
             }
+
+            // Initialize vote states on page load
+            function initializeVoteStates() {
+                // This would be better handled server-side, but for now we'll track client-side
+                $('.like-count, .dislike-count').each(function() {
+                    $(this).attr('data-previous', $(this).text());
+                });
+            }
+
+            initializeVoteStates();
 
             // Star rating for review form
             $('.star-rating input').change(function () {
@@ -985,8 +1241,8 @@ else
                     });
             });
 
-            // Like/Dislike review
-            $('.like-btn, .dislike-btn').click(function () {
+            // Like/Dislike review (works for both main reviews and replies)
+            $(document).on('click', '.like-btn, .dislike-btn', function () {
                 @if (User.Identity?.IsAuthenticated != true)
                     {
                         <text>
@@ -995,9 +1251,10 @@ else
                         </text>
                 }
                 
-                                                            var btn = $(this);
+                var btn = $(this);
                 var reviewId = btn.data('review-id');
                 var isLike = btn.hasClass('like-btn');
+                var actionsContainer = btn.closest('.review-actions, .nested-reply-actions');
 
                 btn.prop('disabled', true);
 
@@ -1008,11 +1265,50 @@ else
                 })
                     .done(function (response) {
                         if (response.success) {
-                            // Update counts
-                            btn.siblings('.like-btn').find('.like-count').text(response.likeCount);
-                            btn.siblings('.dislike-btn').find('.dislike-count').text(response.dislikeCount);
-                            btn.parent().find('.like-count').text(response.likeCount);
-                            btn.parent().find('.dislike-count').text(response.dislikeCount);
+                            // Update counts in the same container
+                            actionsContainer.find('.like-count').text(response.likeCount);
+                            actionsContainer.find('.dislike-count').text(response.dislikeCount);
+                            
+                            // Update visual states
+                            var likeBtn = actionsContainer.find('.like-btn');
+                            var dislikeBtn = actionsContainer.find('.dislike-btn');
+                            
+                            // Get previous counts to determine vote change
+                            var previousLikeCount = parseInt(likeBtn.find('.like-count').attr('data-previous') || '0');
+                            var previousDislikeCount = parseInt(dislikeBtn.find('.dislike-count').attr('data-previous') || '0');
+                            
+                            // Remove all active states first
+                            likeBtn.removeClass('like-active');
+                            dislikeBtn.removeClass('dislike-active');
+                            
+                            // Determine new active state based on vote changes
+                            if (isLike) {
+                                if (response.likeCount > previousLikeCount) {
+                                    // User added a like vote
+                                    likeBtn.addClass('like-active');
+                                } else if (response.likeCount == previousLikeCount && btn.hasClass('like-active')) {
+                                    // User removed their like vote
+                                    // Already removed active state above
+                                }
+                            } else {
+                                if (response.dislikeCount > previousDislikeCount) {
+                                    // User added a dislike vote
+                                    dislikeBtn.addClass('dislike-active');
+                                } else if (response.dislikeCount == previousDislikeCount && btn.hasClass('dislike-active')) {
+                                    // User removed their dislike vote
+                                    // Already removed active state above
+                                }
+                            }
+                            
+                            // Store new counts for next comparison
+                            likeBtn.find('.like-count').attr('data-previous', response.likeCount);
+                            dislikeBtn.find('.dislike-count').attr('data-previous', response.dislikeCount);
+                            
+                            // Add visual feedback
+                            btn.addClass('btn-clicked');
+                            setTimeout(function() {
+                                btn.removeClass('btn-clicked');
+                            }, 200);
                         } else {
                             alert(response.message);
                         }
@@ -1048,8 +1344,8 @@ else
                 $(this).closest('.reply-form').find('.reply-textarea').val('');
             });
 
-            // Send reply
-            $('.reply-btn-send').click(function () {
+            // Send reply (works for both main reviews and nested replies)
+            $(document).on('click', '.reply-btn-send, .nested-reply-btn-send', function () {
                 @if (User.Identity?.IsAuthenticated != true)
                     {
                         <text>
@@ -1058,10 +1354,10 @@ else
                         </text>
                 }
 
-                                var btn = $(this);
+                var btn = $(this);
                 var parentId = btn.data('parent-id');
-                var replyForm = btn.closest('.reply-form');
-                var commentText = replyForm.find('.reply-textarea').val().trim();
+                var replyForm = btn.closest('.reply-form, .nested-reply-form');
+                var commentText = replyForm.find('.reply-textarea, .nested-reply-textarea').val().trim();
 
                 if (!commentText) {
                     alert('Vui lòng nhập nội dung phản hồi');
@@ -1069,6 +1365,7 @@ else
                 }
 
                 btn.prop('disabled', true);
+                var originalHtml = btn.html();
                 btn.html('<i class="fas fa-spinner fa-spin"></i> Gửi...');
 
                 $.post('/Books/Details/@Model.Book?.BookId?handler=ReplyReview', {
@@ -1080,11 +1377,27 @@ else
                         if (response.success) {
                             // Hide reply form
                             replyForm.removeClass('show');
-                            replyForm.find('.reply-textarea').val('');
+                            replyForm.find('.reply-textarea, .nested-reply-textarea').val('');
 
-                            // Reload page to show new reply
-                            // In production, you might want to add the reply dynamically
-                            window.location.reload();
+                            // Show success message
+                            var successMsg = $('<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+                                '<i class="fas fa-check-circle me-2"></i>Phản hồi đã được gửi thành công!' +
+                                '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                                '</div>');
+                            
+                            replyForm.before(successMsg);
+                            
+                            // Auto hide success message after 3 seconds
+                            setTimeout(function() {
+                                successMsg.fadeOut(500, function() {
+                                    $(this).remove();
+                                });
+                            }, 3000);
+
+                            // Reload page after a short delay to show new reply
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 1500);
                         } else {
                             alert(response.message || 'Có lỗi xảy ra khi gửi phản hồi');
                         }
@@ -1094,8 +1407,31 @@ else
                     })
                     .always(function () {
                         btn.prop('disabled', false);
-                        btn.html('<i class="fas fa-paper-plane"></i> Gửi');
+                        btn.html(originalHtml);
                     });
+            });
+
+            // Nested reply functionality
+            $(document).on('click', '.nested-reply-btn', function () {
+                var parentId = $(this).data('parent-id');
+                var nestedReplyForm = $('#nested-reply-form-' + parentId);
+
+                // Hide all other nested reply forms
+                $('.nested-reply-form').removeClass('show');
+
+                // Toggle current nested reply form
+                nestedReplyForm.toggleClass('show');
+
+                if (nestedReplyForm.hasClass('show')) {
+                    // Focus on textarea when form shows
+                    nestedReplyForm.find('.nested-reply-textarea').focus();
+                }
+            });
+
+            // Cancel nested reply
+            $(document).on('click', '.nested-reply-btn-cancel', function () {
+                $(this).closest('.nested-reply-form').removeClass('show');
+                $(this).closest('.nested-reply-form').find('.nested-reply-textarea').val('');
             });
         });
     </script>

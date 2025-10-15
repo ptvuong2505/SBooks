@@ -1,9 +1,674 @@
-@page
-@model SBooks.Pages.Books.TopFavoriteBooksModel;
-
+@page "/Books/TopFavoriteBooks"
+@model SBooks.Pages.Books.TopFavoriteBooksModel
+@using SBooks.Extensions
 @{
-    ViewData["Title"] = "Top Sách Yêu Thích";
-    Layout = "_Layout";
+    ViewData["Title"] = "Top Sách Được Yêu Thích Nhất";
+}
+
+@Html.AntiForgeryToken()
+
+@section Styles {
+    <style>
+        .top-books-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 0;
+            margin-bottom: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .top-books-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1.5" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            animation: float 20s infinite linear;
+        }
+
+        @@keyframes float {
+            0% {
+                transform: translateX(-100px) translateY(-100px);
+            }
+
+            100% {
+                transform: translateX(100px) translateY(100px);
+            }
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header-title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 30px;
+        }
+
+        .stat-item {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        .top-books-list {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .book-item {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: slideInUp 0.6s ease forwards;
+        }
+
+        .book-item:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .book-item:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .book-item:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .book-item:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        .book-item:nth-child(5) {
+            animation-delay: 0.5s;
+        }
+
+        .book-item:nth-child(n+6) {
+            animation-delay: 0.6s;
+        }
+
+        @@keyframes slideInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .book-item:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .book-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 20px 20px 0 0;
+        }
+
+        .rank-badge {
+            position: absolute;
+            top: -10px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            z-index: 2;
+        }
+
+        .rank-badge.top-3 {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+        }
+
+        .rank-badge.top-1 {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.6);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @@keyframes glow {
+            from {
+                box-shadow: 0 4px 15px rgba(255, 215, 0, 0.6);
+            }
+
+            to {
+                box-shadow: 0 8px 25px rgba(255, 215, 0, 0.8), 0 0 30px rgba(255, 215, 0, 0.3);
+            }
+        }
+
+        .book-content {
+            display: flex;
+            gap: 25px;
+            align-items: flex-start;
+        }
+
+        .book-image {
+            width: 120px;
+            height: 180px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .book-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .book-item:hover .book-image img {
+            transform: scale(1.05);
+        }
+
+        .book-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .book-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .book-title a {
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .book-title a:hover {
+            color: #667eea;
+        }
+
+        .book-author {
+            font-size: 1rem;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+
+        .book-author a {
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .book-author a:hover {
+            color: #667eea;
+        }
+
+        .book-description {
+            color: #5a6c7d;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .book-stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .stat-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #f8f9fa;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .stat-group i {
+            color: #667eea;
+        }
+
+        .rating-stars {
+            color: #ffc107;
+        }
+
+        .book-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .favorite-btn {
+            padding: 8px 16px;
+            border: 2px solid;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .favorite-btn.favorited {
+            background: #e74c3c;
+            border-color: #e74c3c;
+            color: white;
+        }
+
+        .favorite-btn.not-favorited {
+            background: transparent;
+            border-color: #e74c3c;
+            color: #e74c3c;
+        }
+
+        .favorite-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .view-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .view-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        .price-tag {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        @@media (max-width: 768px) {
+            .header-title {
+                font-size: 2rem;
+            }
+
+            .stats-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .book-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .book-image {
+                align-self: center;
+            }
+
+            .book-stats {
+                justify-content: center;
+            }
+
+            .book-actions {
+                justify-content: center;
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #7f8c8d;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #bdc3c7;
+        }
+
+        .loading-skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+
+        @@keyframes loading {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+    </style>
+}
+
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="top-books-header">
+        <div class="container">
+            <div class="header-content text-center">
+                <h1 class="header-title">
+                    <i class="fas fa-trophy me-3"></i>
+                    Top Sách Được Yêu Thích Nhất
+                </h1>
+                <p class="header-subtitle">
+                    Khám phá những cuốn sách được độc giả yêu thích nhất trên SBooks
+                </p>
+
+                <div class="stats-container">
+                    <div class="stat-item">
+                        <span class="stat-number">@Model.TopFavoriteBooks.Count</span>
+                        <div class="stat-label">Sách Top</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">@Model.TotalBooks</span>
+                        <div class="stat-label">Tổng Sách Được Yêu Thích</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">@(Model.TopFavoriteBooks.Sum(b => b.FavoriteCount))</span>
+                        <div class="stat-label">Lượt Yêu Thích</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Books List -->
+    <div class="container">
+        @if (Model.TopFavoriteBooks.Any())
+        {
+            <div class="top-books-list">
+                @foreach (var book in Model.TopFavoriteBooks)
+                {
+                    <div class="book-item">
+                        <div class="rank-badge @(book.Rank <= 3 ? "top-3" : "") @(book.Rank == 1 ? "top-1" : "")">
+                            #@book.Rank
+                        </div>
+
+                        <div class="book-content">
+                            <div class="book-image">
+                                @if (!string.IsNullOrEmpty(book.UrlImage))
+                                {
+                                    <img src="@book.UrlImage" alt="@book.Title" onload="this.style.display='block';"
+                                        onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'d-flex flex-column align-items-center justify-content-center text-muted h-100\'><i class=\'fas fa-book fa-2x mb-2\'></i><span>Không có ảnh</span></div>';">
+                                }
+                                else
+                                {
+                                    <div class="d-flex flex-column align-items-center justify-content-center text-muted h-100">
+                                        <i class="fas fa-book fa-2x mb-2"></i>
+                                        <span>Không có ảnh</span>
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="book-info">
+                                <h3 class="book-title">
+                                    <a href="/Books/Details/@book.BookId">@book.Title</a>
+                                </h3>
+
+                                @if (!string.IsNullOrEmpty(book.AuthorName))
+                                {
+                                    <div class="book-author">
+                                        <i class="fas fa-user-edit me-1"></i>
+                                        @if (book.AuthorId.HasValue)
+                                        {
+                                            <a href="/Authors/Details/@book.AuthorId">@book.AuthorName</a>
+                                        }
+                                        else
+                                        {
+                                            @book.AuthorName
+                                        }
+                                    </div>
+                                }
+
+                                @if (!string.IsNullOrEmpty(book.Description))
+                                {
+                                    <p class="book-description">@book.Description</p>
+                                }
+
+                                <div class="book-stats">
+                                    <div class="stat-group">
+                                        <i class="fas fa-heart"></i>
+                                        <span>@book.FavoriteCount lượt yêu thích</span>
+                                    </div>
+
+                                    @if (book.AverageRating > 0)
+                                    {
+                                        <div class="stat-group">
+                                            <span class="rating-stars">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    if (i <= Math.Floor(book.AverageRating))
+                                                    {
+                                                        <i class="fas fa-star"></i>
+                                                    }
+                                                    else if (i <= Math.Ceiling(book.AverageRating))
+                                                    {
+                                                        <i class="fas fa-star-half-alt"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="far fa-star"></i>
+                                                    }
+                                                }
+                                            </span>
+                                            <span>@book.AverageRating.ToString("F1")</span>
+                                        </div>
+                                    }
+
+                                    <div class="stat-group">
+                                        <i class="fas fa-comment"></i>
+                                        <span>@book.ReviewCount đánh giá</span>
+                                    </div>
+
+                                    <div class="stat-group">
+                                        <i class="fas fa-eye"></i>
+                                        <span>@book.ViewCount lượt xem</span>
+                                    </div>
+
+                                    @if (book.Price.HasValue)
+                                    {
+                                        <div class="price-tag">
+                                            @book.Price.Value.ToString("C0", new System.Globalization.CultureInfo("vi-VN"))
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="book-actions">
+                                    <a href="/Books/Details/@book.BookId" class="view-btn">
+                                        <i class="fas fa-eye"></i>
+                                        Xem chi tiết
+                                    </a>
+
+                                    @if (User.Identity?.IsAuthenticated == true)
+                                    {
+                                        <button type="button"
+                                            class="favorite-btn @(book.IsFavorited ? "favorited" : "not-favorited")"
+                                            data-book-id="@book.BookId">
+                                            <i class="fas fa-heart"></i>
+                                            @(book.IsFavorited ? "Đã yêu thích" : "Yêu thích")
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="fas fa-heart-broken"></i>
+                <h3>Chưa có sách được yêu thích</h3>
+                <p>Hãy khám phá và yêu thích những cuốn sách tuyệt vời!</p>
+                <a href="/" class="view-btn mt-3">
+                    <i class="fas fa-home"></i>
+                    Về trang chủ
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            function getAntiForgeryToken() {
+                return $('input[name="__RequestVerificationToken"]').val();
+            }
+
+            // Favorite button functionality
+            $('.favorite-btn').click(function () {
+                var btn = $(this);
+                var bookId = btn.data('book-id');
+                var isFavorited = btn.hasClass('favorited');
+
+                btn.prop('disabled', true);
+
+                // Add loading animation
+                var originalHtml = btn.html();
+                btn.html('<i class="fas fa-spinner fa-spin"></i> ' + (isFavorited ? 'Đang bỏ...' : 'Đang thêm...'));
+
+                $.post('/Books/TopFavoriteBooks?handler=ToggleFavorite', {
+                    bookId: bookId,
+                    __RequestVerificationToken: getAntiForgeryToken()
+                })
+                    .done(function (response) {
+                        if (response.success) {
+                            if (response.isFavorited) {
+                                btn.removeClass('not-favorited')
+                                    .addClass('favorited')
+                                    .html('<i class="fas fa-heart"></i> Đã yêu thích');
+                            } else {
+                                btn.removeClass('favorited')
+                                    .addClass('not-favorited')
+                                    .html('<i class="fas fa-heart"></i> Yêu thích');
+                            }
+
+                            // Add success animation
+                            btn.addClass('btn-success-anim');
+                            setTimeout(function () {
+                                btn.removeClass('btn-success-anim');
+                            }, 600);
+
+                        } else {
+                            alert(response.message || 'Có lỗi xảy ra');
+                            btn.html(originalHtml);
+                        }
+                    })
+                    .fail(function () {
+                        alert('Có lỗi xảy ra. Vui lòng thử lại.');
+                        btn.html(originalHtml);
+                    })
+                    .always(function () {
+                        btn.prop('disabled', false);
+                    });
+            });
+
+            // Add scroll animations
+            function animateOnScroll() {
+                $('.book-item').each(function () {
+                    var elementTop = $(this).offset().top;
+                    var elementBottom = elementTop + $(this).outerHeight();
+                    var viewportTop = $(window).scrollTop();
+                    var viewportBottom = viewportTop + $(window).height();
+
+                    if (elementBottom > viewportTop && elementTop < viewportBottom) {
+                        $(this).addClass('in-view');
+                    }
+                });
+            }
+
+            $(window).scroll(animateOnScroll);
+            animateOnScroll(); // Initial check
+
+            // Add success animation class to CSS
+            $('<style>')
+                .prop('type', 'text/css')
+                .html(`
+                        .btn-success-anim {
+                            animation: successPulse 0.6s ease;
+                        }
+                        @@keyframes successPulse {
+                            0% { transform: scale(1); }
+                            50% { transform: scale(1.05); background: #28a745; color: white; }
+                            100% { transform: scale(1); }
+                        }
+                    `)
+                .appendTo('head');
+        });
+    </script>
+}
+</style>
 }
 
 @* <div class="tab-pane fade" id="top-books">
